@@ -18,8 +18,8 @@ export const CAMPAIGN_CHAPTERS = [
     game: {
       type: 'notes_catcher',
       title: 'El Viento y los Post-its',
-      instruction: '¡Un golpe de viento ha desprendido las notas del Profesor! Atrapa las 8 notas con tu cursor antes de que caigan al vacío y se pierda su memoria.',
-      goal: 8,
+      instruction: '¡Un golpe de viento ha desprendido las notas del Profesor! Atrapa 10 notas con tu cursor antes de que caigan al vacío y se pierda su memoria.',
+      goal: 10,
       timeLimit: 15
     }
   },
@@ -42,8 +42,8 @@ export const CAMPAIGN_CHAPTERS = [
     game: {
       type: 'rain_shelter',
       title: 'El Paraguas de Root',
-      instruction: '¡Comienza a llover sobre Root! Mueve el paraguas radical con las flechas o el mouse para cubrir al niño y evitar que se moje 10 gotas.',
-      goal: 15,
+      instruction: '¡Comienza a llover sobre Root! Mueve el paraguas radical con las flechas o el mouse para rescatar 18 gotas antes de que se agote el tiempo.',
+      goal: 18,
       timeLimit: 20
     }
   },
@@ -66,9 +66,9 @@ export const CAMPAIGN_CHAPTERS = [
     game: {
       type: 'homerun_timing',
       title: 'Bateo de Gran Slam',
-      instruction: 'Haz clic justo cuando la pelota entre en la Zona Dorada para batear 4 cuadrangulares seguidos sin fallar.',
-      goal: 4,
-      timeLimit: 25
+      instruction: 'Haz clic justo cuando la pelota entre en la Zona Dorada para batear 5 cuadrangulares antes de que expire el tiempo.',
+      goal: 5,
+      timeLimit: 24
     }
   },
   {
@@ -90,8 +90,8 @@ export const CAMPAIGN_CHAPTERS = [
     game: {
       type: 'sakura_memory',
       title: 'Armonía de los Cerezos',
-      instruction: 'Memoriza y repite la secuencia de 4 patrones de campanas y flores de cerezo.',
-      goal: 3,
+      instruction: 'Memoriza y repite la secuencia de 4 patrones armónicos de campanas y flores de cerezo.',
+      goal: 4,
       timeLimit: 30
     }
   },
@@ -114,8 +114,8 @@ export const CAMPAIGN_CHAPTERS = [
     game: {
       type: 'fever_compress',
       title: 'Compresas Frías a Tiempo',
-      instruction: '¡La fiebre del Profesor sube rápidamente! Haz clic rápidamente en las compresas de hielo para enfriar su frente antes de que el termómetro llegue al rojo.',
-      goal: 20,
+      instruction: '¡La fiebre del Profesor sube velozmente! Haz clic en 22 compresas de hielo para enfriar su frente antes de que el termómetro llegue al límite.',
+      goal: 22,
       timeLimit: 12
     }
   },
@@ -138,9 +138,9 @@ export const CAMPAIGN_CHAPTERS = [
     game: {
       type: 'stealth_balance',
       title: 'Sigilo en la Noche',
-      instruction: 'Mantén la barra de silencio en la zona verde sin hacer ruido mientras llevas la medicina a la habitación del Profesor.',
+      instruction: 'Avanza dando pasos cautelosos hacia la habitación del Profesor. Mantén el ritmo para no alertar con el crujido del piso (meta: 100%).',
       goal: 100,
-      timeLimit: 15
+      timeLimit: 14
     }
   },
   {
@@ -162,9 +162,9 @@ export const CAMPAIGN_CHAPTERS = [
     game: {
       type: 'euler_constellation',
       title: 'El Trazo Sagrado de Euler',
-      instruction: 'Conecta las 5 esferas celestiales (e, i, π, 1, 0) en el orden exacto trazando con tu cursor para liberar la onda de luz reconciliadora.',
+      instruction: 'Conecta las 5 esferas celestiales (e, i, π, 1, 0) en el orden exacto trazando con tu cursor antes de que se agote el tiempo.',
       goal: 5,
-      timeLimit: 20
+      timeLimit: 14
     }
   },
   {
@@ -186,9 +186,9 @@ export const CAMPAIGN_CHAPTERS = [
     game: {
       type: 'hidden_card_search',
       title: 'Búsqueda en el Baúl Vintage',
-      instruction: 'Inspecciona y retira los periódicos y cajas de 1975 para desenterrar la tarjeta de Enatsu oculta antes de que expire el tiempo.',
+      instruction: 'Inspecciona los 12 compartimentos del baúl de 1975 para desenterrar las 3 tarjetas de Enatsu antes de que expire el tiempo.',
       goal: 3,
-      timeLimit: 18
+      timeLimit: 16
     }
   },
   {
@@ -210,9 +210,9 @@ export const CAMPAIGN_CHAPTERS = [
     game: {
       type: 'logic_circuit',
       title: 'Los Engranajes del Teorema',
-      instruction: 'Alinea los 4 engranajes giratorios en el ángulo dorado para completar la demostración matemática del Profesor.',
+      instruction: 'Alinea los 4 engranajes giratorios en sus ángulos dorados con alta precisión para completar la demostración antes de 14s.',
       goal: 4,
-      timeLimit: 18
+      timeLimit: 14
     }
   },
   {
@@ -234,8 +234,8 @@ export const CAMPAIGN_CHAPTERS = [
     game: {
       type: 'catch_baseball_glove',
       title: 'Atrapa el Lanzamiento del Guante',
-      instruction: 'Mueve el nuevo guante de béisbol para atrapar 10 pelotas consecutivas lanzadas a gran velocidad.',
-      goal: 10,
+      instruction: 'Mueve el nuevo guante de béisbol para atrapar 12 pelotas lanzadas a gran velocidad antes de que se acabe el tiempo.',
+      goal: 12,
       timeLimit: 20
     }
   },
@@ -258,8 +258,8 @@ export const CAMPAIGN_CHAPTERS = [
     game: {
       type: 'chalk_legacy_rush',
       title: 'El Aula del Futuro',
-      instruction: '¡Ayuda a Root a inspirar a su clase! Toca las 12 bombillas de curiosidad de los alumnos antes de que termine la clase.',
-      goal: 12,
+      instruction: '¡Ayuda a Root a inspirar a su clase! Toca las 14 bombillas de curiosidad de los alumnos con rápidos reflejos antes de que termine la clase.',
+      goal: 14,
       timeLimit: 15
     }
   }

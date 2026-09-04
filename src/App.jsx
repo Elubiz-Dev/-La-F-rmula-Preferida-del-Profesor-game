@@ -135,10 +135,19 @@ export default function App() {
         </main>
 
         {/* Footer con créditos */}
-        <footer className="border-t border-emerald-950/80 bg-[#06100e]/95 py-4 px-6 text-xs text-slate-400">
-          <div className="max-w-6xl mx-auto flex items-center justify-center sm:justify-start">
-            <p className="text-center sm:text-left">
+        <footer className="border-t border-emerald-950/80 bg-[#06100e]/95 py-5 px-6 text-xs text-slate-400">
+          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+            <p>
               Basado en la novela de <strong className="text-white">Yōko Ogawa</strong> · <em>博士の愛した数式 (La Fórmula Preferida del Profesor)</em>
+            </p>
+            <p className="text-slate-300">
+              <span className="text-emerald-400 font-semibold">Creadores:</span>{' '}
+              <strong className="text-white">Axel Daniel Lopez vargas</strong>,{' '}
+              <strong className="text-white">Elian Sebastian Navarro Suarez</strong> y{' '}
+              <strong className="text-white">Carlos Jose Lozano Urueña</strong>{' '}
+              <span className="inline-block px-2 py-0.5 ml-1 rounded-md bg-emerald-950/80 border border-emerald-800/60 text-emerald-300 font-mono font-bold text-[11px]">
+                10-1
+              </span>
             </p>
           </div>
         </footer>

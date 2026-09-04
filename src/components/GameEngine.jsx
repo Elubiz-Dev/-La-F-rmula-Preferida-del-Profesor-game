@@ -256,22 +256,23 @@ const NotesCatcher = ({ chapter, onGameOver }) => {
   const notesTexts = ['📝 Me llamo Profesor', '⏰ Memoria: 80 min', '📍 Asistenta nueva', '📅 Accidente 1975', '🧮 Matemático', '🏠 Mi cabaña', '📌 220 y 284', '💼 Mi oficio'];
   const timerRef = useRef(null);
   const noteIdRef = useRef(0);
+  const caughtRef = useRef(0);
 
   const spawnNote = useCallback(() => {
     const id = noteIdRef.current++;
     const x = 5 + Math.random() * 80;
     const text = notesTexts[Math.floor(Math.random() * notesTexts.length)];
-    setNotes(prev => [...prev, { id, x, y: -10, text, speed: 0.8 + Math.random() * 1.2 }]);
+    setNotes(prev => [...prev, { id, x, y: -10, text, speed: 1.2 + Math.random() * 1.4 }]);
   }, []);
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
       setTimeLeft(t => {
-        if (t <= 1) { clearInterval(timerRef.current); onGameOver(caught, goal); return 0; }
+        if (t <= 1) { clearInterval(timerRef.current); onGameOver(caughtRef.current, goal); return 0; }
         return t - 1;
       });
     }, 1000);
-    const spawn = setInterval(spawnNote, 600);
+    const spawn = setInterval(spawnNote, 500);
     return () => { clearInterval(timerRef.current); clearInterval(spawn); };
   }, []);
 
@@ -295,6 +296,7 @@ const NotesCatcher = ({ chapter, onGameOver }) => {
   const catchNote = (id) => {
     playSound('correct');
     setNotes(prev => prev.filter(n => n.id !== id));
+    caughtRef.current++;
     setCaught(c => c + 1);
   };
 
@@ -393,8 +395,8 @@ const RainShelter = ({ chapter, onGameOver }) => {
     }, 1000);
     const spawn = setInterval(() => {
       const id = dropIdRef.current++;
-      setDrops(prev => [...prev, { id, x: 10 + Math.random() * 80, y: 0, speed: 1.2 + Math.random() * 1.3 }]);
-    }, 380);
+      setDrops(prev => [...prev, { id, x: 10 + Math.random() * 80, y: 0, speed: 1.5 + Math.random() * 1.4 }]);
+    }, 320);
     return () => { clearInterval(timer); clearInterval(spawn); };
   }, [goal, onGameOver]);
 
@@ -426,7 +428,7 @@ const RainShelter = ({ chapter, onGameOver }) => {
         const remaining = updated.filter(d => {
           if (d.y >= 78 && d.y <= 88) { // zona del paraguas
             const diff = Math.abs(d.x - currentUmbrellaX);
-            if (diff < 17) { newSaved++; return false; } // Área de captura cómoda y precisa
+            if (diff < 14) { newSaved++; return false; } // Área de captura precisa y desafiante
           }
           if (d.y >= 92) { newHit++; return false; }
           return true;
@@ -555,7 +557,7 @@ const HomerunTiming = ({ chapter, onGameOver }) => {
       });
     }, 1000);
     const ball = setInterval(() => {
-      ballRef.current = ballRef.current + dirRef.current * 3;
+      ballRef.current = ballRef.current + dirRef.current * 3.6;
       if (ballRef.current >= 100 || ballRef.current <= 0) dirRef.current *= -1;
       setBallPos(ballRef.current);
     }, 20);
@@ -567,9 +569,9 @@ const HomerunTiming = ({ chapter, onGameOver }) => {
     swingingRef.current = true;
     setSwinging(true);
     playSound('baseball');
-    // Zona dorada entre 40-60
+    // Zona dorada ajustada entre 43-57 (mayor precisión requerida)
     const pos = ballRef.current;
-    if (pos >= 40 && pos <= 60) {
+    if (pos >= 43 && pos <= 57) {
       playSound('correct');
       homerunRef.current++;
       const h = homerunRef.current;
@@ -609,8 +611,8 @@ const HomerunTiming = ({ chapter, onGameOver }) => {
         {/* Pista de la pelota */}
         <div className="absolute top-1/2 left-4 right-4 h-1 bg-white/10 rounded-full -translate-y-1/2">
           {/* Zona dorada */}
-          <div className="absolute bg-amber-500/40 border-x border-amber-400 h-full rounded-sm" style={{ left: '40%', width: '20%' }} />
-          <div className="absolute top-4 left-[46%] text-[10px] text-amber-400 font-bold whitespace-nowrap">ZONA DORADA</div>
+          <div className="absolute bg-amber-500/40 border-x border-amber-400 h-full rounded-sm" style={{ left: '43%', width: '14%' }} />
+          <div className="absolute top-4 left-[44%] text-[10px] text-amber-400 font-bold whitespace-nowrap">ZONA DORADA</div>
         </div>
         {/* Pelota */}
         <div className="absolute top-1/2 -translate-y-1/2 text-2xl -translate-x-1/2 transition-none" style={{ left: `${ballPos}%` }}>⚾</div>
@@ -652,15 +654,15 @@ const SakuraMemory = ({ chapter, onGameOver }) => {
     if (!isMountedRef.current) return;
     setPhase('watch');
     setMessage('Observa la secuencia...');
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 500));
     for (let i = 0; i < seq.length; i++) {
       if (!isMountedRef.current) return;
       setHighlighted(seq[i]);
       playSound('click');
-      await new Promise(r => setTimeout(r, 600));
+      await new Promise(r => setTimeout(r, 500));
       if (!isMountedRef.current) return;
       setHighlighted(null);
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 250));
     }
     if (!isMountedRef.current) return;
     setPhase('input');
@@ -758,11 +760,11 @@ const FeverCompress = ({ chapter, onGameOver }) => {
   const isOverRef = useRef(false);
 
   useEffect(() => {
-    // Temperatura sube sola
+    // La temperatura sube más velozmente
     const tempInterval = setInterval(() => {
-      tempRef.current = Math.min(100, tempRef.current + 2);
-      setTemp(t => Math.min(100, t + 2));
-    }, 400);
+      tempRef.current = Math.min(100, tempRef.current + 3);
+      setTemp(t => Math.min(100, t + 3));
+    }, 350);
 
     const timer = setInterval(() => {
       setTimeLeft(t => {
@@ -786,7 +788,7 @@ const FeverCompress = ({ chapter, onGameOver }) => {
       y: 10 + Math.random() * 70
     })));
     regen();
-    const spawn = setInterval(regen, 1500);
+    const spawn = setInterval(regen, 1250);
 
     return () => { clearInterval(tempInterval); clearInterval(timer); clearInterval(spawn); };
   }, []);
@@ -800,8 +802,8 @@ const FeverCompress = ({ chapter, onGameOver }) => {
 
   const applyCompress = (id) => {
     playSound('correct');
-    tempRef.current = Math.max(0, tempRef.current - 8);
-    setTemp(t => Math.max(0, t - 8));
+    tempRef.current = Math.max(0, tempRef.current - 7);
+    setTemp(t => Math.max(0, t - 7));
     compRef.current++;
     setCompresses(c => c + 1);
     setPositions(prev => prev.filter(p => p.id !== id));
@@ -844,11 +846,13 @@ const FeverCompress = ({ chapter, onGameOver }) => {
 // JUEGO 6 — Capítulo 6: SIGILO EN LA NOCHE (Balance bar)
 // ================================================================
 const StealthBalance = ({ chapter, onGameOver }) => {
-  const [noise, setNoise] = useState(50); // 0 silencio, 100 ruido
+  const [noise, setNoise] = useState(25); // 0 silencio, 100 ruido
   const [distance, setDistance] = useState(0); // 0-100 distancia recorrida
   const [timeLeft, setTimeLeft] = useState(chapter.game.timeLimit);
-  const noiseRef = useRef(50);
+  const [isCreaking, setIsCreaking] = useState(false);
+  const noiseRef = useRef(25);
   const distRef = useRef(0);
+  const isCreakingRef = useRef(false);
   const isOverRef = useRef(false);
 
   useEffect(() => {
@@ -866,30 +870,48 @@ const StealthBalance = ({ chapter, onGameOver }) => {
     }, 1000);
 
     const physics = setInterval(() => {
-      // Ruido sube si avanza, baja lentamente solo
-      noiseRef.current = Math.max(0, Math.min(100, noiseRef.current - 0.5));
+      // El ruido se disipa gradualmente hacia el silencio
+      noiseRef.current = Math.max(0, noiseRef.current - 1.6);
       setNoise(Math.round(noiseRef.current));
-
-      if (noiseRef.current < 40 && !isOverRef.current) {
-        distRef.current = Math.min(100, distRef.current + 0.5);
-        setDistance(Math.round(distRef.current));
-        if (distRef.current >= 100 && !isOverRef.current) {
-          isOverRef.current = true;
-          onGameOver(100, 100);
-        }
-      }
     }, 50);
 
     return () => { clearInterval(timer); clearInterval(physics); };
-  }, []);
+  }, [onGameOver]);
 
   const step = () => {
-    noiseRef.current = Math.min(100, noiseRef.current + 12);
+    if (isCreakingRef.current || isOverRef.current) return;
+
+    // Si pisa con ruido excesivo acumulado (> 70): el piso cruje y se congela brevemente
+    if (noiseRef.current > 70) {
+      playSound('wrong');
+      noiseRef.current = Math.min(100, noiseRef.current + 25);
+      setNoise(Math.round(noiseRef.current));
+      isCreakingRef.current = true;
+      setIsCreaking(true);
+      setTimeout(() => {
+        isCreakingRef.current = false;
+        setIsCreaking(false);
+      }, 650);
+      return;
+    }
+
+    playSound('click');
+    noiseRef.current = Math.min(100, noiseRef.current + 18);
     setNoise(Math.round(noiseRef.current));
+
+    distRef.current = Math.min(100, distRef.current + 7.5);
+    const newDist = Math.round(distRef.current);
+    setDistance(newDist);
+
+    if (newDist >= 100 && !isOverRef.current) {
+      playSound('correct');
+      isOverRef.current = true;
+      onGameOver(100, 100);
+    }
   };
 
-  const noiseColor = noise > 60 ? 'bg-rose-500' : noise > 30 ? 'bg-amber-500' : 'bg-emerald-500';
-  const safeZone = noise <= 40;
+  const noiseColor = noise > 70 ? 'bg-rose-500' : noise > 45 ? 'bg-amber-500' : 'bg-emerald-500';
+  const safeZone = noise <= 45;
 
   return (
     <div className="rounded-3xl bg-[#0d1b18]/90 border border-emerald-900/60 p-5 space-y-4">
@@ -898,13 +920,13 @@ const StealthBalance = ({ chapter, onGameOver }) => {
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs text-slate-400">
           <span>🔇 Silencio</span>
-          <span className={`font-bold ${safeZone ? 'text-emerald-400' : 'text-rose-400 animate-pulse'}`}>
-            {safeZone ? '✅ Zona Segura — Avanzando...' : '⚠️ ¡Demasiado ruido!'}
+          <span className={`font-bold ${isCreaking ? 'text-rose-400 animate-bounce' : safeZone ? 'text-emerald-400' : 'text-amber-400'}`}>
+            {isCreaking ? '⚠️ ¡CRUJIDO! Guarda silencio...' : safeZone ? '✅ Zona Segura — Paso silencioso' : '⚠️ ¡Cuidado con el ruido!'}
           </span>
           <span>📢 Ruido</span>
         </div>
         <div className="relative h-6 bg-white/10 rounded-full overflow-hidden">
-          <div className="absolute left-0 w-[40%] h-full bg-emerald-900/50 border-r-2 border-emerald-500" />
+          <div className="absolute left-0 w-[45%] h-full bg-emerald-900/50 border-r-2 border-emerald-500" />
           <div className={`h-full ${noiseColor} transition-all duration-100 rounded-full`} style={{ width: `${noise}%` }} />
         </div>
       </div>
@@ -917,13 +939,20 @@ const StealthBalance = ({ chapter, onGameOver }) => {
         <p className="text-xs text-slate-400">{distance}% del camino</p>
       </div>
 
-      <p className="text-center text-sm text-slate-400">Haz <strong className="text-white">UN clic a la vez</strong> — espera a que el ruido baje a zona verde para avanzar:</p>
+      <p className="text-center text-sm text-slate-400">
+        Da pasos con buen ritmo. Si pisas con demasiado ruido, <strong className="text-rose-300">¡el piso crujirá!</strong>
+      </p>
 
       <button
         onClick={step}
-        className="w-full py-5 rounded-2xl bg-indigo-800/60 hover:bg-indigo-700/80 border border-indigo-600/50 text-white font-bold text-lg active:scale-95 transition-all"
+        disabled={isCreaking}
+        className={`w-full py-5 rounded-2xl border text-white font-bold text-lg active:scale-95 transition-all ${
+          isCreaking
+            ? 'bg-rose-900/60 border-rose-500/50 cursor-not-allowed opacity-80'
+            : 'bg-indigo-800/60 hover:bg-indigo-700/80 border-indigo-600/50'
+        }`}
       >
-        👣 Dar Un Paso Silencioso
+        {isCreaking ? '⚠️ ¡Crujido en el piso! Espera...' : '👣 Dar Un Paso Silencioso'}
       </button>
     </div>
   );
@@ -1036,13 +1065,13 @@ const EulerConstellation = ({ chapter, onGameOver }) => {
 // ================================================================
 const HiddenCardSearch = ({ chapter, onGameOver }) => {
   const [boxes, setBoxes] = useState(() => {
-    const cardIndex = Math.floor(Math.random() * 9);
-    return Array.from({ length: 9 }, (_, i) => ({ id: i, opened: false, hasCard: i === cardIndex }));
+    const cardIndex = Math.floor(Math.random() * 12);
+    return Array.from({ length: 12 }, (_, i) => ({ id: i, opened: false, hasCard: i === cardIndex }));
   });
   const [found, setFound] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [timeLeft, setTimeLeft] = useState(chapter.game.timeLimit);
-  const [message, setMessage] = useState('¡Inspecciona las cajas del baúl de 1975 para encontrar la tarjeta de Enatsu #28!');
+  const [message, setMessage] = useState('¡Inspecciona los 12 compartimentos del baúl de 1975 para encontrar la tarjeta de Enatsu #28!');
   const [isReshuffling, setIsReshuffling] = useState(false);
   const goal = chapter.game.goal;
   const foundRef = useRef(0);
@@ -1100,11 +1129,11 @@ const HiddenCardSearch = ({ chapter, onGameOver }) => {
 
       setMessage(`🃏 ¡Encontraste la tarjeta de Enatsu! (${nextFound}/${goal}) Reorganizando el baúl...`);
       timeoutRef.current = setTimeout(() => {
-        const nextCardIndex = Math.floor(Math.random() * 9);
-        setBoxes(Array.from({ length: 9 }, (_, i) => ({ id: i, opened: false, hasCard: i === nextCardIndex })));
+        const nextCardIndex = Math.floor(Math.random() * 12);
+        setBoxes(Array.from({ length: 12 }, (_, i) => ({ id: i, opened: false, hasCard: i === nextCardIndex })));
         setMessage(`¡Busca la siguiente tarjeta (${nextFound + 1}/${goal})!`);
         setIsReshuffling(false);
-      }, 650);
+      }, 500);
     } else {
       playSound('click');
       setMessage('📦 Caja vacía con recortes de periódicos. ¡Sigue buscando!');
@@ -1134,8 +1163,8 @@ const HiddenCardSearch = ({ chapter, onGameOver }) => {
 
       <p className="text-center text-xs text-slate-300 bg-white/5 rounded-xl p-2.5 border border-white/5">{message}</p>
 
-      {/* Grid de cajas */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* Grid de 12 cajas */}
+      <div className="grid grid-cols-4 gap-2.5">
         {boxes.map(box => (
           <button
             key={box.id}
@@ -1155,18 +1184,18 @@ const HiddenCardSearch = ({ chapter, onGameOver }) => {
               box.hasCard ? (
                 <div className="flex flex-col items-center animate-bounce">
                   <span>🃏</span>
-                  <span className="text-[10px] font-mono font-bold text-amber-300 mt-1">#28 ENATSU</span>
+                  <span className="text-[9px] font-mono font-bold text-amber-300 mt-0.5">#28 ENATSU</span>
                 </div>
               ) : (
                 <div className="flex flex-col items-center">
                   <span>📦</span>
-                  <span className="text-[9px] text-slate-500 mt-1">Vacío</span>
+                  <span className="text-[8px] text-slate-500 mt-0.5">Vacío</span>
                 </div>
               )
             ) : (
               <div className="flex flex-col items-center">
                 <span>🗃️</span>
-                <span className="text-[9px] text-amber-200/60 mt-1">1975</span>
+                <span className="text-[8px] text-amber-200/60 mt-0.5">1975</span>
               </div>
             )}
           </button>
@@ -1180,8 +1209,9 @@ const HiddenCardSearch = ({ chapter, onGameOver }) => {
 // JUEGO 9 — Capítulo 9: ENGRANAJES (Rotar al ángulo correcto)
 // ================================================================
 const LogicCircuit = ({ chapter, onGameOver }) => {
-  const [gears, setGears] = useState([45, 90, 135, 180]);
   const targets = [90, 180, 270, 0];
+  // Ángulos iniciales desalineados y más desafiantes
+  const [gears, setGears] = useState([225, 315, 90, 180]);
   const [aligned, setAligned] = useState(0);
   const [timeLeft, setTimeLeft] = useState(chapter.game.timeLimit);
   const alignedRef = useRef(0);
@@ -1211,7 +1241,7 @@ const LogicCircuit = ({ chapter, onGameOver }) => {
       const newAligned = updated.filter((g, i) => {
         const diff = Math.abs(g - targets[i]) % 360;
         const circ = Math.min(diff, 360 - diff);
-        return circ < 25;
+        return circ < 20; // Mayor exigencia angular
       }).length;
       if (newAligned > alignedRef.current) playSound('correct');
       alignedRef.current = newAligned;
@@ -1233,7 +1263,7 @@ const LogicCircuit = ({ chapter, onGameOver }) => {
       <div className="grid grid-cols-2 gap-4">
         {gears.map((angle, idx) => {
           const diff = Math.abs(angle - targets[idx]) % 360;
-          const isAligned = Math.min(diff, 360 - diff) < 25;
+          const isAligned = Math.min(diff, 360 - diff) < 20;
           return (
             <div key={idx} className={`p-4 rounded-2xl border ${isAligned ? 'bg-emerald-900/30 border-emerald-500 ring-1 ring-emerald-400/40' : 'bg-white/5 border-white/10'} text-center space-y-3`}>
               <div className="text-4xl transition-transform duration-200" style={{ transform: `rotate(${angle}deg)`, display: 'inline-block' }}>
@@ -1327,8 +1357,8 @@ const CatchBaseball = ({ chapter, onGameOver }) => {
     }, 1000);
     const spawn = setInterval(() => {
       const id = ballIdRef.current++;
-      setBalls(prev => [...prev, { id, x: 10 + Math.random() * 80, y: 0, speed: 2 + Math.random() * 2 }]);
-    }, 700);
+      setBalls(prev => [...prev, { id, x: 10 + Math.random() * 80, y: 0, speed: 2.6 + Math.random() * 2.2 }]);
+    }, 580);
     return () => { clearInterval(timer); clearInterval(spawn); };
   }, [goal, onGameOver]);
 
@@ -1358,7 +1388,7 @@ const CatchBaseball = ({ chapter, onGameOver }) => {
         let newCaught = 0, newMissed = 0;
         const remaining = updated.filter(b => {
           if (b.y >= 78 && b.y <= 92) {
-            if (Math.abs(b.x - currentGloveX) < 17) { newCaught++; return false; }
+            if (Math.abs(b.x - currentGloveX) < 13) { newCaught++; return false; } // Mayor precisión al recibir el lanzamiento
           }
           if (b.y > 100) { newMissed++; return false; }
           return true;
@@ -1480,8 +1510,8 @@ const ChalkLegacyRush = ({ chapter, onGameOver }) => {
       });
       timeoutRef.current = setTimeout(() => {
         if (!isOverRef.current) lightNext();
-      }, 200);
-    }, 900);
+      }, 180);
+    }, 650);
     return () => {
       clearInterval(timer);
       clearInterval(cycle);

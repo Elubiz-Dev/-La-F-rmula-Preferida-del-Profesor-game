@@ -54,5 +54,10 @@ http://localhost:3000
 La novela de Yōko Ogawa narra la relación entre un matemático con solo 80 minutos de memoria, su asistenta y el hijo de esta (apodado "Root"). A través de 11 capítulos descubres números amigos, la identidad de Euler, números perfectos y la belleza matemática vista como poesía.
 
 ---
-
+ 
 *Desarrollado como herramienta educativa y de presentación literaria.*
+ 
+**Creadores (10-1):**
+- Axel Daniel Lopez vargas
+- Elian Sebastian Navarro Suarez
+- Carlos Jose Lozano Urueña
