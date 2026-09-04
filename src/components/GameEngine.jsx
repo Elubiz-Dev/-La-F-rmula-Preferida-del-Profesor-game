@@ -322,11 +322,12 @@ const NotesCatcher = ({ chapter, onGameOver }) => {
 };
 
 // ================================================================
-// JUEGO 2 — Capítulo 2: PARAGUAS DE ROOT (Mouse tracking)
+// JUEGO 2 — Capítulo 2: PARAGUAS DE ROOT (Mouse tracking + Teclado)
 // ================================================================
 const RainShelter = ({ chapter, onGameOver }) => {
   const [umbrellaX, setUmbrellaX] = useState(50);
   const umbrellaXRef = useRef(50);
+  const keysPressedRef = useRef({ left: false, right: false });
   const [drops, setDrops] = useState([]);
   const [saved, setSaved] = useState(0);
   const [hit, setHit] = useState(0);
@@ -337,6 +338,44 @@ const RainShelter = ({ chapter, onGameOver }) => {
   const savedRef = useRef(0);
   const hitRef = useRef(0);
   const isOverRef = useRef(false);
+
+  // Soporte para flechas del teclado (◀️ ▶️) y teclas A / D
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        keysPressedRef.current.left = true;
+        setUmbrellaX(prev => {
+          const next = Math.max(6, prev - 4);
+          umbrellaXRef.current = next;
+          return next;
+        });
+      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
+        keysPressedRef.current.right = true;
+        setUmbrellaX(prev => {
+          const next = Math.min(94, prev + 4);
+          umbrellaXRef.current = next;
+          return next;
+        });
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        keysPressedRef.current.left = false;
+      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        keysPressedRef.current.right = false;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -357,18 +396,29 @@ const RainShelter = ({ chapter, onGameOver }) => {
       setDrops(prev => [...prev, { id, x: 10 + Math.random() * 80, y: 0, speed: 1.2 + Math.random() * 1.3 }]);
     }, 380);
     return () => { clearInterval(timer); clearInterval(spawn); };
-  }, []);
+  }, [goal, onGameOver]);
 
   useEffect(() => {
     if (savedRef.current >= goal && !isOverRef.current) {
       isOverRef.current = true;
       onGameOver(goal, goal);
     }
-  }, [saved]);
+  }, [saved, goal, onGameOver]);
 
-  // Física de gotas continua a 60 FPS sin recrear interval en cada movimiento
+  // Física de gotas continua a 60 FPS + movimiento suave si se mantienen teclas pulsadas
   useEffect(() => {
     const frame = setInterval(() => {
+      // Movimiento continuo de teclado al mantener presionado
+      if (keysPressedRef.current.left || keysPressedRef.current.right) {
+        setUmbrellaX(prev => {
+          let next = prev;
+          if (keysPressedRef.current.left) next = Math.max(6, next - 2.5);
+          if (keysPressedRef.current.right) next = Math.min(94, next + 2.5);
+          umbrellaXRef.current = next;
+          return next;
+        });
+      }
+
       setDrops(prev => {
         const currentUmbrellaX = umbrellaXRef.current;
         const updated = prev.map(d => ({ ...d, y: d.y + d.speed }));
@@ -376,7 +426,7 @@ const RainShelter = ({ chapter, onGameOver }) => {
         const remaining = updated.filter(d => {
           if (d.y >= 78 && d.y <= 88) { // zona del paraguas
             const diff = Math.abs(d.x - currentUmbrellaX);
-            if (diff < 14) { newSaved++; return false; }
+            if (diff < 17) { newSaved++; return false; } // Área de captura cómoda y precisa
           }
           if (d.y >= 92) { newHit++; return false; }
           return true;
@@ -399,7 +449,7 @@ const RainShelter = ({ chapter, onGameOver }) => {
   const updateUmbrella = (clientX) => {
     if (!arenaRef.current) return;
     const rect = arenaRef.current.getBoundingClientRect();
-    const x = Math.max(10, Math.min(90, ((clientX - rect.left) / rect.width) * 100));
+    const x = Math.max(6, Math.min(94, ((clientX - rect.left) / rect.width) * 100));
     umbrellaXRef.current = x;
     setUmbrellaX(x);
   };
@@ -412,22 +462,62 @@ const RainShelter = ({ chapter, onGameOver }) => {
   return (
     <div className="rounded-3xl bg-[#0d1b18]/90 border border-emerald-900/60 p-5 space-y-4">
       <GameHUD timeLeft={timeLeft} maxTime={chapter.game.timeLimit} score={saved} goal={goal} />
+      
       <div
         ref={arenaRef}
-        className="relative h-96 bg-gradient-to-b from-slate-800/60 to-emerald-900/30 border border-white/10 rounded-2xl overflow-hidden cursor-none"
+        className="relative h-96 bg-gradient-to-b from-slate-800/60 to-emerald-900/30 border border-white/10 rounded-2xl overflow-hidden cursor-ew-resize select-none"
         onMouseMove={handleMouseMove}
         onTouchMove={handleTouchMove}
         style={{ userSelect: 'none', touchAction: 'none' }}
       >
         {/* Root (niño) */}
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-4xl">👦</div>
-        {/* Paraguas */}
-        <div className="absolute text-4xl transition-all duration-75" style={{ left: `${umbrellaX}%`, bottom: '18%', transform: 'translateX(-50%)' }}>☂️</div>
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-4xl select-none">👦</div>
+        {/* Paraguas con respuesta instantánea sin lag de animación */}
+        <div
+          className="absolute select-none pointer-events-none transition-none will-change-transform"
+          style={{ left: `${umbrellaX}%`, bottom: '18%', transform: 'translateX(-50%)' }}
+        >
+          <div className="relative flex flex-col items-center">
+            <span className="text-5xl filter drop-shadow-[0_4px_12px_rgba(16,185,129,0.4)]">☂️</span>
+            <div className="w-14 h-1 bg-emerald-400/50 rounded-full blur-[1px] -mt-1" />
+          </div>
+        </div>
         {/* Gotas de lluvia */}
         {drops.map(d => (
-          <div key={d.id} className="absolute text-lg select-none" style={{ left: `${d.x}%`, top: `${d.y}%`, transform: 'translateX(-50%)' }}>💧</div>
+          <div key={d.id} className="absolute text-lg select-none pointer-events-none" style={{ left: `${d.x}%`, top: `${d.y}%`, transform: 'translateX(-50%)' }}>💧</div>
         ))}
-        {hit > 0 && <div className="absolute top-2 right-3 text-xs text-rose-400">Golpes: {hit}</div>}
+        {hit > 0 && <div className="absolute top-2 right-3 text-xs text-rose-400 font-mono">Golpes: {hit}</div>}
+      </div>
+
+      {/* Barra de ayuda de controles */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-2 pt-1 text-xs text-slate-400 bg-white/5 rounded-xl p-2.5 border border-white/5">
+        <div className="flex items-center gap-2">
+          <span>🎮 <strong>Controles:</strong></span>
+          <span className="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-800/60 text-emerald-300 font-medium">🖱️ Mover ratón</span>
+          <span>o</span>
+          <span className="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-800/60 text-emerald-300 font-mono">◀️ Teclas ▶️ / A D</span>
+        </div>
+        {/* Botones de apoyo para click / táctil rápido */}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setUmbrellaX(p => { const n = Math.max(6, p - 7); umbrellaXRef.current = n; return n; });
+            }}
+            className="px-3 py-1 bg-white/10 hover:bg-white/20 active:scale-95 rounded-lg text-white font-bold transition-all text-xs"
+          >
+            ◀ Izquierda
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setUmbrellaX(p => { const n = Math.min(94, p + 7); umbrellaXRef.current = n; return n; });
+            }}
+            className="px-3 py-1 bg-white/10 hover:bg-white/20 active:scale-95 rounded-lg text-white font-bold transition-all text-xs"
+          >
+            Derecha ▶
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1095,11 +1185,12 @@ const LogicCircuit = ({ chapter, onGameOver }) => {
 };
 
 // ================================================================
-// JUEGO 10 — Capítulo 10: ATRAPA EL BÉISBOL (Mouse tracking)
+// JUEGO 10 — Capítulo 10: ATRAPA EL BÉISBOL (Mouse tracking + Teclado)
 // ================================================================
 const CatchBaseball = ({ chapter, onGameOver }) => {
   const [gloveX, setGloveX] = useState(50);
   const gloveXRef = useRef(50);
+  const keysPressedRef = useRef({ left: false, right: false });
   const [balls, setBalls] = useState([]);
   const [caught, setCaught] = useState(0);
   const [missed, setMissed] = useState(0);
@@ -1109,6 +1200,44 @@ const CatchBaseball = ({ chapter, onGameOver }) => {
   const arenaRef = useRef(null);
   const ballIdRef = useRef(0);
   const isOverRef = useRef(false);
+
+  // Soporte para flechas del teclado y teclas A / D
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        keysPressedRef.current.left = true;
+        setGloveX(prev => {
+          const next = Math.max(6, prev - 4);
+          gloveXRef.current = next;
+          return next;
+        });
+      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
+        keysPressedRef.current.right = true;
+        setGloveX(prev => {
+          const next = Math.min(94, prev + 4);
+          gloveXRef.current = next;
+          return next;
+        });
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        keysPressedRef.current.left = false;
+      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        keysPressedRef.current.right = false;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -1140,13 +1269,23 @@ const CatchBaseball = ({ chapter, onGameOver }) => {
   // Bucle de física fluido continuo a 60 FPS sin recreación constante de interval
   useEffect(() => {
     const frame = setInterval(() => {
+      if (keysPressedRef.current.left || keysPressedRef.current.right) {
+        setGloveX(prev => {
+          let next = prev;
+          if (keysPressedRef.current.left) next = Math.max(6, next - 2.8);
+          if (keysPressedRef.current.right) next = Math.min(94, next + 2.8);
+          gloveXRef.current = next;
+          return next;
+        });
+      }
+
       setBalls(prev => {
         const currentGloveX = gloveXRef.current;
         const updated = prev.map(b => ({ ...b, y: b.y + b.speed }));
         let newCaught = 0, newMissed = 0;
         const remaining = updated.filter(b => {
           if (b.y >= 78 && b.y <= 92) {
-            if (Math.abs(b.x - currentGloveX) < 14) { newCaught++; return false; }
+            if (Math.abs(b.x - currentGloveX) < 17) { newCaught++; return false; }
           }
           if (b.y > 100) { newMissed++; return false; }
           return true;
@@ -1166,7 +1305,7 @@ const CatchBaseball = ({ chapter, onGameOver }) => {
   const updateGlove = (clientX) => {
     if (!arenaRef.current) return;
     const rect = arenaRef.current.getBoundingClientRect();
-    const x = Math.max(10, Math.min(90, ((clientX - rect.left) / rect.width) * 100));
+    const x = Math.max(6, Math.min(94, ((clientX - rect.left) / rect.width) * 100));
     gloveXRef.current = x;
     setGloveX(x);
   };
@@ -1179,13 +1318,48 @@ const CatchBaseball = ({ chapter, onGameOver }) => {
   return (
     <div className="rounded-3xl bg-[#0d1b18]/90 border border-emerald-900/60 p-5 space-y-4">
       <GameHUD timeLeft={timeLeft} maxTime={chapter.game.timeLimit} score={caught} goal={goal} />
-      <div ref={arenaRef} className="relative h-96 bg-gradient-to-b from-sky-900/20 to-emerald-900/30 border border-white/10 rounded-2xl overflow-hidden cursor-none"
+      <div ref={arenaRef} className="relative h-96 bg-gradient-to-b from-sky-900/20 to-emerald-900/30 border border-white/10 rounded-2xl overflow-hidden cursor-ew-resize select-none"
         onMouseMove={handleMouseMove} onTouchMove={handleTouchMove} style={{ touchAction: 'none', userSelect: 'none' }}>
         {balls.map(b => (
-          <div key={b.id} className="absolute text-2xl -translate-x-1/2 select-none" style={{ left: `${b.x}%`, top: `${b.y}%` }}>⚾</div>
+          <div key={b.id} className="absolute text-2xl -translate-x-1/2 select-none pointer-events-none" style={{ left: `${b.x}%`, top: `${b.y}%` }}>⚾</div>
         ))}
-        <div className="absolute text-4xl -translate-x-1/2 transition-none select-none" style={{ left: `${gloveX}%`, bottom: '5%' }}>🧤</div>
+        <div className="absolute text-4xl -translate-x-1/2 transition-none select-none pointer-events-none will-change-transform" style={{ left: `${gloveX}%`, bottom: '5%' }}>
+          <div className="relative flex flex-col items-center">
+            <span className="filter drop-shadow-[0_4px_12px_rgba(234,179,8,0.4)]">🧤</span>
+            <div className="w-12 h-1 bg-amber-400/50 rounded-full blur-[1px] -mt-1" />
+          </div>
+        </div>
         {missed > 0 && <div className="absolute top-2 right-3 text-xs text-rose-400 font-mono">Perdidos: {missed}</div>}
+      </div>
+
+      {/* Barra de ayuda de controles */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-2 pt-1 text-xs text-slate-400 bg-white/5 rounded-xl p-2.5 border border-white/5">
+        <div className="flex items-center gap-2">
+          <span>🎮 <strong>Controles:</strong></span>
+          <span className="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-800/60 text-emerald-300 font-medium">🖱️ Mover ratón</span>
+          <span>o</span>
+          <span className="px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-800/60 text-emerald-300 font-mono">◀️ Teclas ▶️ / A D</span>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setGloveX(p => { const n = Math.max(6, p - 7); gloveXRef.current = n; return n; });
+            }}
+            className="px-3 py-1 bg-white/10 hover:bg-white/20 active:scale-95 rounded-lg text-white font-bold transition-all text-xs"
+          >
+            ◀ Izquierda
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setGloveX(p => { const n = Math.min(94, p + 7); gloveXRef.current = n; return n; });
+            }}
+            className="px-3 py-1 bg-white/10 hover:bg-white/20 active:scale-95 rounded-lg text-white font-bold transition-all text-xs"
+          >
+            Derecha ▶
+          </button>
+        </div>
       </div>
     </div>
   );
