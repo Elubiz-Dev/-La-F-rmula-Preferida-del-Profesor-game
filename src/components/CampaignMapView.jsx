@@ -4,7 +4,7 @@ import { playSound } from '../utils/sound';
 import { 
   Lock, Star, ChevronRight, Pin, Shield, Flame, Sparkles, 
   Thermometer, Moon, Heart, Box, Trophy, Gift, GraduationCap, 
-  CheckCircle2, Compass, Play, Zap, Unlock
+  CheckCircle2, Play, Zap
 } from 'lucide-react';
 
 const ICONS = { Pin, Shield, Flame, Sparkles, Thermometer, Moon, Heart, Box, Trophy, Gift, GraduationCap };
