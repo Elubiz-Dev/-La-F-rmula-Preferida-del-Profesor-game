@@ -3,12 +3,16 @@
 @tailwind utilities;
 
 @layer base {
+  html, body, #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
   body {
     background-color: #071210;
     color: #f1f5f9;
     font-family: 'Outfit', sans-serif;
     user-select: none;
-    overflow-x: hidden;
   }
 }
 
