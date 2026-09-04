@@ -258,9 +258,9 @@ export const CAMPAIGN_CHAPTERS = [
     game: {
       type: 'chalk_legacy_rush',
       title: 'El Aula del Futuro',
-      instruction: '¡Ayuda a Root a inspirar a su clase! Toca las 14 bombillas de curiosidad de los alumnos con rápidos reflejos antes de que termine la clase.',
-      goal: 14,
-      timeLimit: 15
+      instruction: '¡Ayuda al Maestro Root a inspirar a su clase! Toca a los alumnos cuando se encienda su bombilla de curiosidad 💡 para iluminar a los 12 alumnos.',
+      goal: 12,
+      timeLimit: 20
     }
   }
 ];

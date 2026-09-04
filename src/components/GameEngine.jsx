@@ -1469,27 +1469,61 @@ const CatchBaseball = ({ chapter, onGameOver }) => {
 };
 
 // ================================================================
-// JUEGO 11 — Capítulo 11: ENCIENDE LAS BOMBILLAS (Click rápido en grid)
+// JUEGO 11 — Capítulo 11: ENCIENDE LAS BOMBILLAS (Inspirar a la clase)
 // ================================================================
 const ChalkLegacyRush = ({ chapter, onGameOver }) => {
-  const [lit, setLit] = useState(Array(12).fill(false));
-  const [active, setActive] = useState(null);
+  const goal = chapter.game.goal; // 12
+  const maxTime = chapter.game.timeLimit; // 20
+  const [timeLeft, setTimeLeft] = useState(maxTime);
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(chapter.game.timeLimit);
-  const goal = chapter.game.goal;
-  const scoreRef = useRef(0);
-  const isOverRef = useRef(false);
-  const timeoutRef = useRef(null);
+  const [inspired, setInspired] = useState(Array(12).fill(false));
+  const [activeStudents, setActiveStudents] = useState([]);
 
-  const lightNext = useCallback(() => {
-    const idx = Math.floor(Math.random() * 12);
-    setActive(idx);
+  const scoreRef = useRef(0);
+  const inspiredRef = useRef(Array(12).fill(false));
+  const activeRef = useRef([]);
+  const isOverRef = useRef(false);
+  const timerRef = useRef(null);
+  const spawnTimerRef = useRef(null);
+
+  // Función para activar un alumno que aún no esté inspirado
+  const activateNextStudent = useCallback(() => {
+    if (isOverRef.current) return;
+
+    // Buscar alumnos pendientes de inspirar y que no estén activos
+    const available = [];
+    for (let i = 0; i < 12; i++) {
+      if (!inspiredRef.current[i] && !activeRef.current.includes(i)) {
+        available.push(i);
+      }
+    }
+
+    if (available.length === 0) return;
+
+    // Elegir aleatoriamente uno disponible
+    const chosen = available[Math.floor(Math.random() * available.length)];
+    const newActive = [...activeRef.current, chosen];
+    activeRef.current = newActive;
+    setActiveStudents([...newActive]);
+
+    // Si pasan 1.6s sin click, la curiosidad salta a otro pupitre
+    setTimeout(() => {
+      if (isOverRef.current) return;
+      if (activeRef.current.includes(chosen) && !inspiredRef.current[chosen]) {
+        activeRef.current = activeRef.current.filter(id => id !== chosen);
+        setActiveStudents([...activeRef.current]);
+        activateNextStudent();
+      }
+    }, 1600);
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    // Temporizador principal
+    timerRef.current = setInterval(() => {
       setTimeLeft(t => {
         if (t <= 1) {
+          clearInterval(timerRef.current);
+          clearInterval(spawnTimerRef.current);
           if (!isOverRef.current) {
             isOverRef.current = true;
             onGameOver(scoreRef.current, goal);
@@ -1499,37 +1533,69 @@ const ChalkLegacyRush = ({ chapter, onGameOver }) => {
         return t - 1;
       });
     }, 1000);
-    lightNext();
-    const cycle = setInterval(() => {
+
+    // Activar primer alumno inmediatamente y un segundo poco después
+    activateNextStudent();
+    const timeoutSecond = setTimeout(() => {
+      if (!isOverRef.current && scoreRef.current < goal) {
+        activateNextStudent();
+      }
+    }, 450);
+
+    // Mantener siempre 1 o 2 alumnos activos mientras falten por inspirar
+    spawnTimerRef.current = setInterval(() => {
       if (isOverRef.current) return;
-      setActive(prev => {
-        if (prev !== null) {
-          setLit(l => { const nl = [...l]; nl[prev] = false; return nl; });
-        }
-        return null;
-      });
-      timeoutRef.current = setTimeout(() => {
-        if (!isOverRef.current) lightNext();
-      }, 180);
-    }, 650);
+      if (scoreRef.current >= goal) return;
+      if (activeRef.current.length < 2) {
+        activateNextStudent();
+      }
+    }, 750);
+
     return () => {
-      clearInterval(timer);
-      clearInterval(cycle);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      clearInterval(timerRef.current);
+      clearInterval(spawnTimerRef.current);
+      clearTimeout(timeoutSecond);
     };
-  }, [goal, lightNext, onGameOver]);
+  }, [goal, activateNextStudent, onGameOver]);
 
   const clickStudent = (idx) => {
     if (isOverRef.current) return;
-    if (active !== idx) { playSound('wrong'); return; }
-    playSound('correct');
-    scoreRef.current++;
-    setScore(s => s + 1);
-    setActive(null);
-    setLit(l => { const nl = [...l]; nl[idx] = true; return nl; });
-    if (scoreRef.current >= goal && !isOverRef.current) {
-      isOverRef.current = true;
-      onGameOver(goal, goal);
+
+    // Si ya fue inspirado, no hacer nada
+    if (inspiredRef.current[idx]) return;
+
+    // Si tiene la bombilla activa
+    if (activeRef.current.includes(idx)) {
+      playSound('correct');
+
+      // Marcar alumno como inspirado
+      inspiredRef.current[idx] = true;
+      setInspired([...inspiredRef.current]);
+
+      // Remover de activos
+      activeRef.current = activeRef.current.filter(id => id !== idx);
+      setActiveStudents([...activeRef.current]);
+
+      // Aumentar puntaje
+      scoreRef.current++;
+      const newScore = scoreRef.current;
+      setScore(newScore);
+
+      // Si se inspiraron los 12 alumnos de la clase -> ¡Victoria!
+      if (newScore >= goal) {
+        isOverRef.current = true;
+        clearInterval(timerRef.current);
+        clearInterval(spawnTimerRef.current);
+        setTimeout(() => {
+          onGameOver(goal, goal);
+        }, 500);
+        return;
+      }
+
+      // Activar al siguiente inmediatamente sin retraso
+      activateNextStudent();
+    } else {
+      playSound('click');
     }
   };
 
@@ -1537,25 +1603,47 @@ const ChalkLegacyRush = ({ chapter, onGameOver }) => {
 
   return (
     <div className="rounded-3xl bg-[#0d1b18]/90 border border-emerald-900/60 p-5 space-y-4">
-      <GameHUD timeLeft={timeLeft} maxTime={chapter.game.timeLimit} score={score} goal={goal} />
-      <p className="text-center text-xs text-slate-400">¡Toca al alumno cuando su bombilla se encienda!</p>
-      <div className="grid grid-cols-4 gap-3">
-        {STUDENT_EMOJIS.map((emoji, idx) => (
-          <button
-            key={idx}
-            onClick={() => clickStudent(idx)}
-            className={`p-3 rounded-2xl text-center transition-all active:scale-90 border
-              ${active === idx
-                ? 'bg-amber-400/30 border-amber-400 scale-110 shadow-xl shadow-amber-500/40'
-                : lit[idx]
-                  ? 'bg-emerald-900/30 border-emerald-700'
-                  : 'bg-white/5 border-white/10'
+      <GameHUD timeLeft={timeLeft} maxTime={maxTime} score={score} goal={goal} />
+      <p className="text-center text-xs text-slate-300">
+        ¡Toca a cada alumno cuando se encienda su bombilla <strong className="text-amber-400">💡</strong> para encender la mente de toda la clase!
+      </p>
+
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+        {STUDENT_EMOJIS.map((emoji, idx) => {
+          const isAct = activeStudents.includes(idx);
+          const isInsp = inspired[idx];
+          return (
+            <button
+              key={idx}
+              onClick={() => clickStudent(idx)}
+              disabled={isInsp}
+              className={`p-3.5 rounded-2xl text-center transition-all border relative flex flex-col items-center justify-center select-none ${
+                isAct
+                  ? 'bg-gradient-to-br from-amber-500/30 via-yellow-500/20 to-amber-600/30 border-amber-400 scale-105 shadow-xl shadow-amber-500/40 ring-2 ring-amber-400 animate-pulse cursor-pointer active:scale-95'
+                  : isInsp
+                    ? 'bg-emerald-950/70 border-emerald-500/60 shadow-md shadow-emerald-950 cursor-default opacity-95'
+                    : 'bg-white/5 border-white/10 hover:bg-white/10 cursor-pointer opacity-70'
               }`}
-          >
-            <div className="text-3xl">{emoji}</div>
-            <div className="text-lg mt-1">{active === idx ? '💡' : lit[idx] ? '✅' : '⬜'}</div>
-          </button>
-        ))}
+            >
+              <div className="text-3xl sm:text-4xl transition-transform duration-200">
+                {emoji}
+              </div>
+              <div className="text-xs mt-1.5 font-bold">
+                {isAct ? (
+                  <span className="flex items-center gap-1 text-amber-300 font-mono animate-bounce">
+                    💡 ¡Idea!
+                  </span>
+                ) : isInsp ? (
+                  <span className="flex items-center gap-1 text-emerald-400 font-mono">
+                    ✨ Inspirado
+                  </span>
+                ) : (
+                  <span className="text-slate-500 font-mono text-[11px]">💭 Atento</span>
+                )}
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
