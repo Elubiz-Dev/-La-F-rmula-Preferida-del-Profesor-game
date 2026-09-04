@@ -142,9 +142,9 @@ export default function App() {
             </p>
             <p className="text-slate-300">
               <span className="text-emerald-400 font-semibold">Creadores:</span>{' '}
-              <strong className="text-white">Axel Daniel Lopez vargas</strong>,{' '}
-              <strong className="text-white">Elian Sebastian Navarro Suarez</strong> y{' '}
-              <strong className="text-white">Carlos Jose Lozano Urueña</strong>{' '}
+              <strong className="text-white">Axel Daniel López Vargas</strong>,{' '}
+              <strong className="text-white">Elian Sebastian Navarro Suárez</strong> y{' '}
+              <strong className="text-white">Carlos José Lozano Urueña</strong>{' '}
               <span className="inline-block px-2 py-0.5 ml-1 rounded-md bg-emerald-950/80 border border-emerald-800/60 text-emerald-300 font-mono font-bold text-[11px]">
                 10-1
               </span>

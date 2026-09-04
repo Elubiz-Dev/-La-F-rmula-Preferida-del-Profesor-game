@@ -58,6 +58,6 @@ La novela de Yōko Ogawa narra la relación entre un matemático con solo 80 min
 *Desarrollado como herramienta educativa y de presentación literaria.*
  
 **Creadores (10-1):**
-- Axel Daniel Lopez vargas
+- Axel Daniel Lopez Vargas
 - Elian Sebastian Navarro Suarez
 - Carlos Jose Lozano Urueña
