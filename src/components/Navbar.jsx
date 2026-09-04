@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Volume2, VolumeX, Maximize, Minimize, Map, Package, Award, Star, Sparkles } from 'lucide-react';
+import { Volume2, VolumeX, Maximize, Minimize, Map, Package, Award, Star, Sparkles, BookOpen } from 'lucide-react';
 import { playSound } from '../utils/sound';
 
 export const Navbar = ({ activeTab, setActiveTab, soundEnabled, toggleSoundHandler, totalCards, totalStars }) => {
@@ -14,9 +14,11 @@ export const Navbar = ({ activeTab, setActiveTab, soundEnabled, toggleSoundHandl
   };
 
   const tabs = [
-    { id: 'campaign', label: 'Campaña', icon: Map, badge: '11 Capítulos' },
+    { id: 'campaign', label: 'Campaña', icon: Map, badge: 'Arcade' },
+    { id: 'story', label: 'Novela', icon: BookOpen, badge: '11 Cap.' },
+    { id: 'mathlab', label: 'Laboratorio', icon: Sparkles, badge: 'Math' },
     { id: 'collection', label: 'Colección', icon: Package, badge: `${totalCards}/11` },
-    { id: 'quiz', label: 'Trivia Final', icon: Award, badge: 'Quiz' },
+    { id: 'quiz', label: 'Trivia', icon: Award, badge: 'Diploma' },
   ];
 
   return (

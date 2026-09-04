@@ -246,7 +246,7 @@ export const QuizView = ({ onBack }) => {
           </div>
 
           {/* DIPLOMA IMPRIMIBLE DE NOVELA */}
-          <div className="bg-[#fefae0] text-[#283618] rounded-3xl p-6 sm:p-8 border-8 border-[#dda15e] shadow-2xl space-y-4 print:border-none" id="diploma">
+          <div className="bg-[#fefae0] text-[#283618] rounded-3xl p-6 sm:p-8 border-8 border-[#dda15e] shadow-2xl space-y-4 printable-area" id="diploma">
             <div className="w-12 h-12 mx-auto rounded-full bg-[#bc6c25] text-[#fefae0] flex items-center justify-center font-serif text-2xl font-bold shadow-md">
               ∞
             </div>

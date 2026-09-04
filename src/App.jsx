@@ -3,6 +3,8 @@ import { BackgroundCanvas } from './components/BackgroundCanvas';
 import { Navbar } from './components/Navbar';
 import { CampaignMapView } from './components/CampaignMapView';
 import { GameEngine } from './components/GameEngine';
+import { ChapterStoryView } from './components/ChapterStoryView';
+import { MathLabView } from './components/MathLabView';
 import { CollectionView } from './components/CollectionView';
 import { QuizView } from './components/QuizView';
 import { toggleSound, isSoundEnabled, playSound } from './utils/sound';
@@ -12,6 +14,7 @@ import { Sparkles, RotateCcw, Unlock } from 'lucide-react';
 export default function App() {
   const [activeTab, setActiveTab] = useState('campaign');
   const [soundActive, setSoundActive] = useState(true);
+  const [activeStoryChapterId, setActiveStoryChapterId] = useState(1);
 
   // Estado global de progreso de la campaña
   const [progress, setProgress] = useState(() => {
@@ -58,6 +61,21 @@ export default function App() {
     setPlayingChapterId(null);
   };
 
+  const handleReadChapterStory = (id) => {
+    setActiveStoryChapterId(id || 1);
+    setPlayingChapterId(null);
+    setActiveTab('story');
+  };
+
+  const handlePlayFromStory = (id) => {
+    setActiveTab('campaign');
+    setPlayingChapterId(id);
+  };
+
+  const handleGoToLab = () => {
+    setActiveTab('mathlab');
+  };
+
   // Funciones de utilidad para demostración
   const unlockAllDemo = () => {
     playSound('correct');
@@ -98,6 +116,7 @@ export default function App() {
             <CampaignMapView
               progress={progress}
               onPlayChapter={(id) => setPlayingChapterId(id)}
+              onReadChapter={handleReadChapterStory}
             />
           )}
 
@@ -107,6 +126,23 @@ export default function App() {
               existingStars={progress.stars[playingChapterId] || 0}
               onComplete={(stars, card) => handleCompleteChapter(playingChapterId, stars, card)}
               onBack={() => setPlayingChapterId(null)}
+              onReadStory={handleReadChapterStory}
+            />
+          )}
+
+          {activeTab === 'story' && (
+            <ChapterStoryView
+              initialChapterId={activeStoryChapterId}
+              onGoToLab={handleGoToLab}
+              onPlayArcade={handlePlayFromStory}
+              onBackToCampaign={() => setActiveTab('campaign')}
+            />
+          )}
+
+          {activeTab === 'mathlab' && (
+            <MathLabView
+              onBackToStory={() => setActiveTab('story')}
+              onBackToCampaign={() => setActiveTab('campaign')}
             />
           )}
 

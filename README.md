@@ -12,14 +12,14 @@ Una aplicación web donde los jugadores **desbloquean progresivamente los 11 cap
 
 ## ✨ Características
 
-- 📖 **11 Capítulos** de la novela sintetizados con narrativa inmersiva y citas textuales
-- 🎮 **11 Minijuegos arcade únicos** — sin matemáticas, puro reflejos y habilidad:
+- 📖 **Lector de la Novela (11 Capítulos)** con narrativa inmersiva, citas textuales y fórmulas matemáticas interactivas en KaTeX
+- 🧪 **Laboratorio Matemático del Profesor** para experimentar con la Identidad de Euler, la Suma de Gauss, el Refugio del Radical y Números Amigos
+- 🎮 **11 Minijuegos arcade únicos** de habilidad y reflejos sincronizados con cada capítulo:
   - Atrapa los Post-its, Paraguas de Root, Timing de béisbol, Simon Says de cerezos, Compresas de fiebre, Sigilo nocturno, Constelación de Euler, Búsqueda de tarjeta, Engranajes, Atrapa las pelotas, Bombillas del aula
 - ⭐ **Sistema de estrellas** (1-3 por capítulo)
-- 🔒 **Desbloqueo progresivo** — se avanza capítulo a capítulo
-- 🃏 **11 Cartas coleccionables** con rareza y descripción narrativa
-- 💾 **Progreso persistente** en localStorage
-- 🏆 **Trivia de 10 preguntas** con diploma imprimible
+- 🔒 **Desbloqueo progresivo** — avance capítulo a capítulo con guardado en localStorage
+- 🃏 **11 Cartas coleccionables** con rareza, lore e impresión de tarjetas
+- 🏆 **Trivia final de 10 preguntas** con bonificación de racha y diploma imprimible en alta definición
 
 ---
 

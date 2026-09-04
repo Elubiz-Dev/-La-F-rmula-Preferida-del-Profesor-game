@@ -66,7 +66,7 @@ const StarRating = ({ count, max = 3 }) => (
   </div>
 );
 
-export const CampaignMapView = ({ progress, onPlayChapter }) => {
+export const CampaignMapView = ({ progress, onPlayChapter, onReadChapter }) => {
   const { unlockedChapters, stars, cards } = progress;
   const [selectedAct, setSelectedAct] = useState('all');
 
@@ -316,28 +316,51 @@ export const CampaignMapView = ({ progress, onPlayChapter }) => {
                           </span>
                         </div>
 
-                        {/* Botón de Jugar */}
+                        {/* Botones de Acción: Jugar y Leer */}
                         {isUnlocked && (
-                          <button 
-                            className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md ${
-                              isCompleted
-                                ? 'bg-amber-500/20 text-amber-200 border border-amber-500/40 hover:bg-amber-500/30'
-                                : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 text-white hover:from-emerald-500 hover:to-teal-400 shadow-emerald-950/80 hover:shadow-lg'
-                            }`}
-                          >
-                            {isCompleted ? (
-                              <>
-                                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                <span>Mejorar Puntuación</span>
-                              </>
-                            ) : (
-                              <>
-                                <Play className="w-4 h-4 fill-white text-white" />
-                                <span>Jugar Capítulo</span>
-                                <ChevronRight className="w-4 h-4" />
-                              </>
+                          <div className="flex gap-2">
+                            {onReadChapter && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  playSound('click');
+                                  onReadChapter(chapter.id);
+                                }}
+                                title="Leer síntesis literaria y conceptos matemáticos de este capítulo"
+                                className="px-3 py-2.5 rounded-xl font-semibold text-xs bg-white/10 hover:bg-white/15 text-emerald-300 hover:text-white border border-white/10 transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                              >
+                                <span>📖</span>
+                                <span className="hidden sm:inline">Leer Novela</span>
+                              </button>
                             )}
-                          </button>
+                            <button 
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                playSound('click');
+                                onPlayChapter(chapter.id);
+                              }}
+                              className={`flex-1 py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md ${
+                                isCompleted
+                                  ? 'bg-amber-500/20 text-amber-200 border border-amber-500/40 hover:bg-amber-500/30'
+                                  : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 text-white hover:from-emerald-500 hover:to-teal-400 shadow-emerald-950/80 hover:shadow-lg'
+                              }`}
+                            >
+                              {isCompleted ? (
+                                <>
+                                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                                  <span>{chapterStars === 3 ? 'Repetir (3★)' : 'Mejorar Puntuación'}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Play className="w-4 h-4 fill-white text-white" />
+                                  <span>Jugar Desafío</span>
+                                  <ChevronRight className="w-4 h-4" />
+                                </>
+                              )}
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>

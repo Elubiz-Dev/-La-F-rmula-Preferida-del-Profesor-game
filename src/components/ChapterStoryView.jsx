@@ -18,9 +18,20 @@ import { MathFormula } from '../utils/katexHelper';
 import { playSound } from '../utils/sound';
 import confetti from 'canvas-confetti';
 
-export const ChapterStoryView = ({ onGoToLab }) => {
-  const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
+export const ChapterStoryView = ({ initialChapterId = 1, onGoToLab, onPlayArcade, onBackToCampaign }) => {
+  const [currentChapterIndex, setCurrentChapterIndex] = useState(() => {
+    const idx = CHAPTERS.findIndex(c => c.id === initialChapterId);
+    return idx !== -1 ? idx : 0;
+  });
   const chapter = CHAPTERS[currentChapterIndex];
+
+  // Sincronizar si cambia initialChapterId desde el exterior
+  useEffect(() => {
+    if (initialChapterId) {
+      const idx = CHAPTERS.findIndex(c => c.id === initialChapterId);
+      if (idx !== -1) setCurrentChapterIndex(idx);
+    }
+  }, [initialChapterId]);
 
   // Mini-estados para los widgets interactivos de cada capítulo
   const [rootInputVal, setRootInputVal] = useState(10);
@@ -219,8 +230,39 @@ export const ChapterStoryView = ({ onGoToLab }) => {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto px-4 lg:px-8 py-4">
+    <div className="space-y-6 max-w-7xl mx-auto px-4 lg:px-8 py-4 animate-fade-in">
       
+      {/* Barra superior de navegación rápida */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        {onBackToCampaign && (
+          <button
+            onClick={() => { playSound('click'); onBackToCampaign(); }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-mono text-slate-300 hover:text-white border border-white/10 transition-all shadow-sm"
+          >
+            <ChevronLeft className="w-4 h-4" /> Volver al Mapa de Campaña
+          </button>
+        )}
+
+        <div className="flex items-center gap-2">
+          {onPlayArcade && (
+            <button
+              onClick={() => { playSound('click'); onPlayArcade(chapter.id); }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-amber-600 via-orange-600 to-amber-500 hover:from-amber-500 hover:to-orange-400 text-white text-xs font-bold shadow-md hover:shadow-amber-950/60 transition-all active:scale-95"
+            >
+              <span>🎮</span> Jugar Desafío del Cap. {chapter.id}
+            </button>
+          )}
+          {onGoToLab && (
+            <button
+              onClick={() => { playSound('click'); onGoToLab(); }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-teal-950/60 hover:bg-teal-900/70 border border-teal-500/40 text-teal-300 hover:text-white text-xs font-medium transition-all"
+            >
+              <span>🧪</span> Laboratorio
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Selector de Capítulos tipo Línea de Tiempo */}
       <div className="bg-chalkboard-800/80 p-3 rounded-2xl border border-emerald-900/50 shadow-xl backdrop-blur-md">
         <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2 scrollbar-thin">
@@ -271,8 +313,16 @@ export const ChapterStoryView = ({ onGoToLab }) => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            <span className="text-xs font-mono text-slate-400">
+          <div className="flex items-center gap-3 self-end sm:self-auto">
+            {onPlayArcade && (
+              <button
+                onClick={() => { playSound('click'); onPlayArcade(chapter.id); }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-400 text-white text-xs font-bold shadow transition-all"
+              >
+                <span>🎮</span> Jugar Arcade
+              </button>
+            )}
+            <span className="text-xs font-mono text-slate-400 bg-black/40 px-2.5 py-1 rounded-lg border border-white/10">
               {chapter.id} de 11
             </span>
           </div>

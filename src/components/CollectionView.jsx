@@ -79,7 +79,7 @@ const RARITY_THEMES = {
 
 const CARD_EMOJIS = {
   1: '⌚', 2: '☂️', 3: '⚾', 4: '🌸', 5: '🏟️', 6: '🔑',
-  7: '📜', 8: '📷', 9: '🥇', 10: '🧤', 11: '🍵'
+  7: '📜', 8: '📷', 9: '🥇', 10: '🧤', 11: '🧑‍🏫'
 };
 
 export const CollectionView = ({ progress }) => {
@@ -231,12 +231,20 @@ export const CollectionView = ({ progress }) => {
               "{selectedCard.quote}"
             </div>
 
-            <button
-              onClick={() => setSelectedCard(null)}
-              className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-sm hover:from-emerald-500 hover:to-teal-500 transition-all shadow-lg"
-            >
-              Cerrar Detalle
-            </button>
+            <div className="flex gap-2.5">
+              <button
+                onClick={() => { playSound('click'); window.print(); }}
+                className="flex-1 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-slate-200 font-semibold text-xs transition-all border border-white/10 flex items-center justify-center gap-1.5"
+              >
+                <Printer className="w-3.5 h-3.5 text-amber-400" /> Imprimir
+              </button>
+              <button
+                onClick={() => setSelectedCard(null)}
+                className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs hover:from-emerald-500 hover:to-teal-500 transition-all shadow-lg"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

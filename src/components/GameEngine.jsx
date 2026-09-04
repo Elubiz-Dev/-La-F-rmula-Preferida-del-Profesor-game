@@ -8,7 +8,7 @@ import confetti from 'canvas-confetti';
 // MOTOR CENTRAL DE MINIJUEGOS — 11 juegos de arcade/habilidad
 // ================================================================
 
-export const GameEngine = ({ chapterId, existingStars, onComplete, onBack }) => {
+export const GameEngine = ({ chapterId, existingStars, onComplete, onBack, onReadStory }) => {
   const chapter = CAMPAIGN_CHAPTERS.find(c => c.id === chapterId);
   const [gameState, setGameState] = useState('intro'); // intro | playing | result
   const [starsEarned, setStarsEarned] = useState(0);
@@ -114,12 +114,22 @@ export const GameEngine = ({ chapterId, existingStars, onComplete, onBack }) => 
             <span className="flex items-center gap-1.5"><Trophy className="w-4 h-4 text-amber-400" /> Meta: <strong className="text-amber-300">{chapter.game.goal}</strong></span>
           </div>
 
-          <button
-            onClick={() => { playSound('click'); setGameState('playing'); }}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-base sm:text-lg shadow-xl shadow-emerald-950/80 transition-all active:scale-95"
-          >
-            ¡Comenzar Desafío! →
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            {onReadStory && (
+              <button
+                onClick={() => { playSound('click'); onReadStory(chapter.id); }}
+                className="flex-1 py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/20 text-emerald-300 hover:text-white font-semibold text-sm transition-all flex items-center justify-center gap-2"
+              >
+                <span>📖</span> Leer Capítulo en Novela
+              </button>
+            )}
+            <button
+              onClick={() => { playSound('click'); setGameState('playing'); }}
+              className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-base sm:text-lg shadow-xl shadow-emerald-950/80 transition-all active:scale-95"
+            >
+              ¡Comenzar Desafío! →
+            </button>
+          </div>
         </div>
       )}
 
@@ -167,18 +177,26 @@ export const GameEngine = ({ chapterId, existingStars, onComplete, onBack }) => 
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
             <button
               onClick={() => { playSound('click'); setGameState('intro'); }}
               className="py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 font-semibold flex items-center justify-center gap-2 transition-all border border-white/10 text-xs sm:text-sm"
             >
               <RefreshCw className="w-4 h-4" /> Reintentar
             </button>
+            {onReadStory && (
+              <button
+                onClick={() => { playSound('click'); onReadStory(chapter.id); }}
+                className="py-3.5 rounded-2xl bg-amber-950/40 hover:bg-amber-900/50 text-amber-300 border border-amber-500/30 font-semibold flex items-center justify-center gap-2 transition-all text-xs sm:text-sm"
+              >
+                <span>📖</span> Leer Novela
+              </button>
+            )}
             <button
               onClick={() => { playSound('click'); onComplete(starsEarned, starsEarned >= 1 ? chapter.rewardCard.name : null); }}
               className="py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold transition-all shadow-lg text-xs sm:text-sm"
             >
-              {starsEarned >= 1 ? 'Continuar Historia →' : 'Volver al Mapa'}
+              {starsEarned >= 1 ? 'Continuar →' : 'Volver al Mapa'}
             </button>
           </div>
         </div>
@@ -308,6 +326,7 @@ const NotesCatcher = ({ chapter, onGameOver }) => {
 // ================================================================
 const RainShelter = ({ chapter, onGameOver }) => {
   const [umbrellaX, setUmbrellaX] = useState(50);
+  const umbrellaXRef = useRef(50);
   const [drops, setDrops] = useState([]);
   const [saved, setSaved] = useState(0);
   const [hit, setHit] = useState(0);
@@ -317,60 +336,77 @@ const RainShelter = ({ chapter, onGameOver }) => {
   const dropIdRef = useRef(0);
   const savedRef = useRef(0);
   const hitRef = useRef(0);
+  const isOverRef = useRef(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(t => {
-        if (t <= 1) { clearInterval(timer); onGameOver(savedRef.current, goal); return 0; }
+        if (t <= 1) {
+          clearInterval(timer);
+          if (!isOverRef.current) {
+            isOverRef.current = true;
+            onGameOver(savedRef.current, goal);
+          }
+          return 0;
+        }
         return t - 1;
       });
     }, 1000);
     const spawn = setInterval(() => {
       const id = dropIdRef.current++;
-      setDrops(prev => [...prev, { id, x: 10 + Math.random() * 80, y: 0, speed: 1 + Math.random() }]);
-    }, 400);
+      setDrops(prev => [...prev, { id, x: 10 + Math.random() * 80, y: 0, speed: 1.2 + Math.random() * 1.3 }]);
+    }, 380);
     return () => { clearInterval(timer); clearInterval(spawn); };
   }, []);
 
   useEffect(() => {
-    if (savedRef.current >= goal) onGameOver(goal, goal);
+    if (savedRef.current >= goal && !isOverRef.current) {
+      isOverRef.current = true;
+      onGameOver(goal, goal);
+    }
   }, [saved]);
 
-  // Física de gotas
+  // Física de gotas continua a 60 FPS sin recrear interval en cada movimiento
   useEffect(() => {
     const frame = setInterval(() => {
       setDrops(prev => {
+        const currentUmbrellaX = umbrellaXRef.current;
         const updated = prev.map(d => ({ ...d, y: d.y + d.speed }));
         let newSaved = 0, newHit = 0;
         const remaining = updated.filter(d => {
-          if (d.y >= 80 && d.y <= 88) { // zona del paraguas
-            const diff = Math.abs(d.x - umbrellaX);
-            if (diff < 12) { newSaved++; return false; }
+          if (d.y >= 78 && d.y <= 88) { // zona del paraguas
+            const diff = Math.abs(d.x - currentUmbrellaX);
+            if (diff < 14) { newSaved++; return false; }
           }
-          if (d.y >= 90) { newHit++; return false; }
+          if (d.y >= 92) { newHit++; return false; }
           return true;
         });
-        if (newSaved > 0) { playSound('correct'); savedRef.current += newSaved; setSaved(s => s + newSaved); }
-        if (newHit > 0) { hitRef.current += newHit; setHit(h => h + newHit); }
+        if (newSaved > 0) {
+          playSound('correct');
+          savedRef.current += newSaved;
+          setSaved(s => s + newSaved);
+        }
+        if (newHit > 0) {
+          hitRef.current += newHit;
+          setHit(h => h + newHit);
+        }
         return remaining;
       });
-    }, 50);
+    }, 40);
     return () => clearInterval(frame);
-  }, [umbrellaX]);
+  }, []);
 
-  const handleMouseMove = (e) => {
+  const updateUmbrella = (clientX) => {
     if (!arenaRef.current) return;
     const rect = arenaRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    setUmbrellaX(Math.max(10, Math.min(90, x)));
+    const x = Math.max(10, Math.min(90, ((clientX - rect.left) / rect.width) * 100));
+    umbrellaXRef.current = x;
+    setUmbrellaX(x);
   };
 
+  const handleMouseMove = (e) => updateUmbrella(e.clientX);
   const handleTouchMove = (e) => {
-    e.preventDefault();
-    if (!arenaRef.current) return;
-    const rect = arenaRef.current.getBoundingClientRect();
-    const x = ((e.touches[0].clientX - rect.left) / rect.width) * 100;
-    setUmbrellaX(Math.max(10, Math.min(90, x)));
+    if (e.touches && e.touches[0]) updateUmbrella(e.touches[0].clientX);
   };
 
   return (
@@ -408,14 +444,25 @@ const HomerunTiming = ({ chapter, onGameOver }) => {
   const [timeLeft, setTimeLeft] = useState(chapter.game.timeLimit);
   const [feedback, setFeedback] = useState('');
   const [swinging, setSwinging] = useState(false);
+  const swingingRef = useRef(false);
   const goal = chapter.game.goal;
   const ballRef = useRef(0);
   const dirRef = useRef(1);
   const homerunRef = useRef(0);
+  const isOverRef = useRef(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(t => { if (t <= 1) { onGameOver(homerunRef.current, goal); return 0; } return t - 1; });
+      setTimeLeft(t => {
+        if (t <= 1) {
+          if (!isOverRef.current) {
+            isOverRef.current = true;
+            onGameOver(homerunRef.current, goal);
+          }
+          return 0;
+        }
+        return t - 1;
+      });
     }, 1000);
     const ball = setInterval(() => {
       ballRef.current = ballRef.current + dirRef.current * 3;
@@ -425,11 +472,12 @@ const HomerunTiming = ({ chapter, onGameOver }) => {
     return () => { clearInterval(timer); clearInterval(ball); };
   }, []);
 
-  const swing = () => {
-    if (swinging) return;
+  const swing = useCallback(() => {
+    if (swingingRef.current || isOverRef.current) return;
+    swingingRef.current = true;
     setSwinging(true);
     playSound('baseball');
-    // Zona dorada entre 42-58
+    // Zona dorada entre 40-60
     const pos = ballRef.current;
     if (pos >= 40 && pos <= 60) {
       playSound('correct');
@@ -437,19 +485,32 @@ const HomerunTiming = ({ chapter, onGameOver }) => {
       const h = homerunRef.current;
       setHomeruns(h);
       setFeedback('🏠 ¡CUADRANGULAR!');
-      if (h >= goal) { onGameOver(goal, goal); return; }
+      if (h >= goal && !isOverRef.current) {
+        isOverRef.current = true;
+        onGameOver(goal, goal);
+        return;
+      }
     } else {
       playSound('wrong');
       setFeedback('❌ ¡Swing y fallo!');
     }
-    setTimeout(() => { setFeedback(''); setSwinging(false); }, 500);
-  };
+    setTimeout(() => {
+      setFeedback('');
+      swingingRef.current = false;
+      setSwinging(false);
+    }, 500);
+  }, [goal, onGameOver]);
 
   useEffect(() => {
-    const handleKey = (e) => { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); swing(); } };
+    const handleKey = (e) => {
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault();
+        swing();
+      }
+    };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [swinging]);
+  }, [swing]);
 
   return (
     <div className="rounded-3xl bg-[#0d1b18]/90 border border-emerald-900/60 p-5 space-y-4">
@@ -494,31 +555,39 @@ const SakuraMemory = ({ chapter, onGameOver }) => {
   const [message, setMessage] = useState('Observa la secuencia...');
   const [failed, setFailed] = useState(false);
   const goal = chapter.game.goal;
+  const isMountedRef = useRef(true);
+  const isOverRef = useRef(false);
 
   const showSequence = async (seq) => {
+    if (!isMountedRef.current) return;
     setPhase('watch');
     setMessage('Observa la secuencia...');
     await new Promise(r => setTimeout(r, 600));
     for (let i = 0; i < seq.length; i++) {
+      if (!isMountedRef.current) return;
       setHighlighted(seq[i]);
       playSound('click');
       await new Promise(r => setTimeout(r, 600));
+      if (!isMountedRef.current) return;
       setHighlighted(null);
       await new Promise(r => setTimeout(r, 300));
     }
+    if (!isMountedRef.current) return;
     setPhase('input');
     setMessage('¡Tu turno! Repite la secuencia');
     setPlayerInput([]);
   };
 
   useEffect(() => {
+    isMountedRef.current = true;
     const initial = [Math.floor(Math.random() * 4)];
     setSequence(initial);
     showSequence(initial);
+    return () => { isMountedRef.current = false; };
   }, []);
 
   const handleInput = (idx) => {
-    if (phase !== 'input') return;
+    if (phase !== 'input' || isOverRef.current) return;
     playSound('click');
     const newInput = [...playerInput, idx];
     setPlayerInput(newInput);
@@ -527,7 +596,10 @@ const SakuraMemory = ({ chapter, onGameOver }) => {
       playSound('wrong');
       setFailed(true);
       setMessage('❌ ¡Secuencia incorrecta!');
-      setTimeout(() => onGameOver(round - 1, goal), 1500);
+      isOverRef.current = true;
+      setTimeout(() => {
+        if (isMountedRef.current) onGameOver(round - 1, goal);
+      }, 1500);
       return;
     }
 
@@ -535,13 +607,18 @@ const SakuraMemory = ({ chapter, onGameOver }) => {
       playSound('correct');
       if (round >= goal) {
         setMessage('🎉 ¡Perfecto! Has completado todas las rondas');
-        setTimeout(() => onGameOver(goal, goal), 1200);
+        isOverRef.current = true;
+        setTimeout(() => {
+          if (isMountedRef.current) onGameOver(goal, goal);
+        }, 1200);
         return;
       }
       const nextSeq = [...sequence, Math.floor(Math.random() * 4)];
       setRound(r => r + 1);
       setSequence(nextSeq);
-      setTimeout(() => showSequence(nextSeq), 800);
+      setTimeout(() => {
+        if (isMountedRef.current) showSequence(nextSeq);
+      }, 800);
     }
   };
 
@@ -588,6 +665,8 @@ const FeverCompress = ({ chapter, onGameOver }) => {
   const compRef = useRef(0);
   const tempRef = useRef(0);
 
+  const isOverRef = useRef(false);
+
   useEffect(() => {
     // Temperatura sube sola
     const tempInterval = setInterval(() => {
@@ -597,7 +676,15 @@ const FeverCompress = ({ chapter, onGameOver }) => {
 
     const timer = setInterval(() => {
       setTimeLeft(t => {
-        if (t <= 1) { clearInterval(timer); clearInterval(tempInterval); onGameOver(compRef.current, goal); return 0; }
+        if (t <= 1) {
+          clearInterval(timer);
+          clearInterval(tempInterval);
+          if (!isOverRef.current) {
+            isOverRef.current = true;
+            onGameOver(compRef.current, goal);
+          }
+          return 0;
+        }
         return t - 1;
       });
     }, 1000);
@@ -615,7 +702,10 @@ const FeverCompress = ({ chapter, onGameOver }) => {
   }, []);
 
   useEffect(() => {
-    if (compRef.current >= goal) onGameOver(goal, goal);
+    if (compRef.current >= goal && !isOverRef.current) {
+      isOverRef.current = true;
+      onGameOver(goal, goal);
+    }
   }, [compresses]);
 
   const applyCompress = (id) => {
@@ -667,13 +757,22 @@ const StealthBalance = ({ chapter, onGameOver }) => {
   const [noise, setNoise] = useState(50); // 0 silencio, 100 ruido
   const [distance, setDistance] = useState(0); // 0-100 distancia recorrida
   const [timeLeft, setTimeLeft] = useState(chapter.game.timeLimit);
-  const [holding, setHolding] = useState(false);
   const noiseRef = useRef(50);
   const distRef = useRef(0);
+  const isOverRef = useRef(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(t => { if (t <= 1) { onGameOver(Math.round(distRef.current), 100); return 0; } return t - 1; });
+      setTimeLeft(t => {
+        if (t <= 1) {
+          if (!isOverRef.current) {
+            isOverRef.current = true;
+            onGameOver(Math.round(distRef.current), 100);
+          }
+          return 0;
+        }
+        return t - 1;
+      });
     }, 1000);
 
     const physics = setInterval(() => {
@@ -681,10 +780,13 @@ const StealthBalance = ({ chapter, onGameOver }) => {
       noiseRef.current = Math.max(0, Math.min(100, noiseRef.current - 0.5));
       setNoise(Math.round(noiseRef.current));
 
-      if (noiseRef.current < 40) {
+      if (noiseRef.current < 40 && !isOverRef.current) {
         distRef.current = Math.min(100, distRef.current + 0.5);
         setDistance(Math.round(distRef.current));
-        if (distRef.current >= 100) { onGameOver(100, 100); }
+        if (distRef.current >= 100 && !isOverRef.current) {
+          isOverRef.current = true;
+          onGameOver(100, 100);
+        }
       }
     }, 50);
 
@@ -915,29 +1017,46 @@ const HiddenCardSearch = ({ chapter, onGameOver }) => {
 // JUEGO 9 — Capítulo 9: ENGRANAJES (Rotar al ángulo correcto)
 // ================================================================
 const LogicCircuit = ({ chapter, onGameOver }) => {
-  const [gears, setGears] = useState([45, 90, 135, 200]);
-  const targets = [90, 180, 270, 360];
+  const [gears, setGears] = useState([45, 90, 135, 180]);
+  const targets = [90, 180, 270, 0];
   const [aligned, setAligned] = useState(0);
   const [timeLeft, setTimeLeft] = useState(chapter.game.timeLimit);
   const alignedRef = useRef(0);
+  const isOverRef = useRef(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(t => { if (t <= 1) { onGameOver(alignedRef.current, 4); return 0; } return t - 1; });
+      setTimeLeft(t => {
+        if (t <= 1) {
+          if (!isOverRef.current) {
+            isOverRef.current = true;
+            onGameOver(alignedRef.current, 4);
+          }
+          return 0;
+        }
+        return t - 1;
+      });
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [onGameOver]);
 
   const rotateGear = (idx, dir) => {
     playSound('click');
     setGears(prev => {
       const updated = [...prev];
-      updated[idx] = (updated[idx] + dir * 45 + 360) % 361;
-      const newAligned = updated.filter((g, i) => Math.abs(g - targets[i]) < 20).length;
+      updated[idx] = ((updated[idx] + dir * 45) % 360 + 360) % 360;
+      const newAligned = updated.filter((g, i) => {
+        const diff = Math.abs(g - targets[i]) % 360;
+        const circ = Math.min(diff, 360 - diff);
+        return circ < 25;
+      }).length;
       if (newAligned > alignedRef.current) playSound('correct');
       alignedRef.current = newAligned;
       setAligned(newAligned);
-      if (newAligned >= 4) setTimeout(() => onGameOver(4, 4), 600);
+      if (newAligned >= 4 && !isOverRef.current) {
+        isOverRef.current = true;
+        setTimeout(() => onGameOver(4, 4), 600);
+      }
       return updated;
     });
   };
@@ -950,21 +1069,22 @@ const LogicCircuit = ({ chapter, onGameOver }) => {
       <p className="text-center text-xs text-slate-400">Ajusta cada engranaje al ángulo objetivo girando con los botones</p>
       <div className="grid grid-cols-2 gap-4">
         {gears.map((angle, idx) => {
-          const isAligned = Math.abs(angle - targets[idx]) < 20;
+          const diff = Math.abs(angle - targets[idx]) % 360;
+          const isAligned = Math.min(diff, 360 - diff) < 25;
           return (
-            <div key={idx} className={`p-4 rounded-2xl border ${isAligned ? 'bg-emerald-900/30 border-emerald-500' : 'bg-white/5 border-white/10'} text-center space-y-3`}>
-              <div className="text-4xl transition-transform" style={{ transform: `rotate(${angle}deg)`, display: 'inline-block' }}>
+            <div key={idx} className={`p-4 rounded-2xl border ${isAligned ? 'bg-emerald-900/30 border-emerald-500 ring-1 ring-emerald-400/40' : 'bg-white/5 border-white/10'} text-center space-y-3`}>
+              <div className="text-4xl transition-transform duration-200" style={{ transform: `rotate(${angle}deg)`, display: 'inline-block' }}>
                 {GEAR_EMOJIS[idx]}
               </div>
               <div className="text-xs">
                 <span className="text-slate-400">Actual: </span><span className="text-amber-300 font-mono">{angle}°</span>
                 {' / '}
-                <span className="text-slate-400">Meta: </span><span className="text-emerald-400 font-mono">{targets[idx]}°</span>
+                <span className="text-slate-400">Meta: </span><span className="text-emerald-400 font-mono">{targets[idx] === 0 ? '0° (360°)' : `${targets[idx]}°`}</span>
               </div>
               {isAligned && <div className="text-emerald-400 text-xs font-bold">✅ Alineado</div>}
               <div className="flex gap-2 justify-center">
-                <button onClick={() => rotateGear(idx, -1)} className="px-4 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all">◀ -45°</button>
-                <button onClick={() => rotateGear(idx, 1)} className="px-4 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all">+45° ▶</button>
+                <button onClick={() => rotateGear(idx, -1)} className="px-4 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all text-xs">◀ -45°</button>
+                <button onClick={() => rotateGear(idx, 1)} className="px-4 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all text-xs">+45° ▶</button>
               </div>
             </div>
           );
@@ -979,6 +1099,7 @@ const LogicCircuit = ({ chapter, onGameOver }) => {
 // ================================================================
 const CatchBaseball = ({ chapter, onGameOver }) => {
   const [gloveX, setGloveX] = useState(50);
+  const gloveXRef = useRef(50);
   const [balls, setBalls] = useState([]);
   const [caught, setCaught] = useState(0);
   const [missed, setMissed] = useState(0);
@@ -987,52 +1108,72 @@ const CatchBaseball = ({ chapter, onGameOver }) => {
   const caughtRef = useRef(0);
   const arenaRef = useRef(null);
   const ballIdRef = useRef(0);
+  const isOverRef = useRef(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(t => { if (t <= 1) { onGameOver(caughtRef.current, goal); return 0; } return t - 1; });
+      setTimeLeft(t => {
+        if (t <= 1) {
+          if (!isOverRef.current) {
+            isOverRef.current = true;
+            onGameOver(caughtRef.current, goal);
+          }
+          return 0;
+        }
+        return t - 1;
+      });
     }, 1000);
     const spawn = setInterval(() => {
       const id = ballIdRef.current++;
       setBalls(prev => [...prev, { id, x: 10 + Math.random() * 80, y: 0, speed: 2 + Math.random() * 2 }]);
-    }, 800);
+    }, 700);
     return () => { clearInterval(timer); clearInterval(spawn); };
-  }, []);
+  }, [goal, onGameOver]);
 
   useEffect(() => {
-    if (caughtRef.current >= goal) onGameOver(goal, goal);
-  }, [caught]);
+    if (caughtRef.current >= goal && !isOverRef.current) {
+      isOverRef.current = true;
+      onGameOver(goal, goal);
+    }
+  }, [caught, goal, onGameOver]);
 
+  // Bucle de física fluido continuo a 60 FPS sin recreación constante de interval
   useEffect(() => {
     const frame = setInterval(() => {
       setBalls(prev => {
+        const currentGloveX = gloveXRef.current;
         const updated = prev.map(b => ({ ...b, y: b.y + b.speed }));
         let newCaught = 0, newMissed = 0;
         const remaining = updated.filter(b => {
-          if (b.y >= 80 && b.y <= 92) {
-            if (Math.abs(b.x - gloveX) < 10) { newCaught++; return false; }
+          if (b.y >= 78 && b.y <= 92) {
+            if (Math.abs(b.x - currentGloveX) < 14) { newCaught++; return false; }
           }
           if (b.y > 100) { newMissed++; return false; }
           return true;
         });
-        if (newCaught > 0) { playSound('correct'); caughtRef.current += newCaught; setCaught(c => c + newCaught); }
+        if (newCaught > 0) {
+          playSound('correct');
+          caughtRef.current += newCaught;
+          setCaught(c => c + newCaught);
+        }
         if (newMissed > 0) { setMissed(m => m + newMissed); }
         return remaining;
       });
     }, 40);
     return () => clearInterval(frame);
-  }, [gloveX]);
+  }, []);
 
-  const handleMouseMove = (e) => {
+  const updateGlove = (clientX) => {
     if (!arenaRef.current) return;
     const rect = arenaRef.current.getBoundingClientRect();
-    setGloveX(Math.max(10, Math.min(90, ((e.clientX - rect.left) / rect.width) * 100)));
+    const x = Math.max(10, Math.min(90, ((clientX - rect.left) / rect.width) * 100));
+    gloveXRef.current = x;
+    setGloveX(x);
   };
+
+  const handleMouseMove = (e) => updateGlove(e.clientX);
   const handleTouchMove = (e) => {
-    e.preventDefault();
-    if (!arenaRef.current) return;
-    const rect = arenaRef.current.getBoundingClientRect();
-    setGloveX(Math.max(10, Math.min(90, ((e.touches[0].clientX - rect.left) / rect.width) * 100)));
+    if (e.touches && e.touches[0]) updateGlove(e.touches[0].clientX);
   };
 
   return (
@@ -1041,10 +1182,10 @@ const CatchBaseball = ({ chapter, onGameOver }) => {
       <div ref={arenaRef} className="relative h-96 bg-gradient-to-b from-sky-900/20 to-emerald-900/30 border border-white/10 rounded-2xl overflow-hidden cursor-none"
         onMouseMove={handleMouseMove} onTouchMove={handleTouchMove} style={{ touchAction: 'none', userSelect: 'none' }}>
         {balls.map(b => (
-          <div key={b.id} className="absolute text-2xl -translate-x-1/2" style={{ left: `${b.x}%`, top: `${b.y}%` }}>⚾</div>
+          <div key={b.id} className="absolute text-2xl -translate-x-1/2 select-none" style={{ left: `${b.x}%`, top: `${b.y}%` }}>⚾</div>
         ))}
-        <div className="absolute text-4xl -translate-x-1/2 transition-none" style={{ left: `${gloveX}%`, bottom: '5%' }}>🧤</div>
-        {missed > 0 && <div className="absolute top-2 right-3 text-xs text-rose-400">Perdidos: {missed}</div>}
+        <div className="absolute text-4xl -translate-x-1/2 transition-none select-none" style={{ left: `${gloveX}%`, bottom: '5%' }}>🧤</div>
+        {missed > 0 && <div className="absolute top-2 right-3 text-xs text-rose-400 font-mono">Perdidos: {missed}</div>}
       </div>
     </div>
   );
@@ -1060,6 +1201,8 @@ const ChalkLegacyRush = ({ chapter, onGameOver }) => {
   const [timeLeft, setTimeLeft] = useState(chapter.game.timeLimit);
   const goal = chapter.game.goal;
   const scoreRef = useRef(0);
+  const isOverRef = useRef(false);
+  const timeoutRef = useRef(null);
 
   const lightNext = useCallback(() => {
     const idx = Math.floor(Math.random() * 12);
@@ -1068,29 +1211,49 @@ const ChalkLegacyRush = ({ chapter, onGameOver }) => {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(t => { if (t <= 1) { onGameOver(scoreRef.current, goal); return 0; } return t - 1; });
+      setTimeLeft(t => {
+        if (t <= 1) {
+          if (!isOverRef.current) {
+            isOverRef.current = true;
+            onGameOver(scoreRef.current, goal);
+          }
+          return 0;
+        }
+        return t - 1;
+      });
     }, 1000);
     lightNext();
     const cycle = setInterval(() => {
+      if (isOverRef.current) return;
       setActive(prev => {
         if (prev !== null) {
           setLit(l => { const nl = [...l]; nl[prev] = false; return nl; });
         }
         return null;
       });
-      setTimeout(lightNext, 200);
+      timeoutRef.current = setTimeout(() => {
+        if (!isOverRef.current) lightNext();
+      }, 200);
     }, 900);
-    return () => { clearInterval(timer); clearInterval(cycle); };
-  }, []);
+    return () => {
+      clearInterval(timer);
+      clearInterval(cycle);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [goal, lightNext, onGameOver]);
 
   const clickStudent = (idx) => {
+    if (isOverRef.current) return;
     if (active !== idx) { playSound('wrong'); return; }
     playSound('correct');
     scoreRef.current++;
     setScore(s => s + 1);
     setActive(null);
     setLit(l => { const nl = [...l]; nl[idx] = true; return nl; });
-    if (scoreRef.current >= goal) { onGameOver(goal, goal); }
+    if (scoreRef.current >= goal && !isOverRef.current) {
+      isOverRef.current = true;
+      onGameOver(goal, goal);
+    }
   };
 
   const STUDENT_EMOJIS = ['👦', '👧', '🧒', '👦', '👧', '🧒', '👦', '👧', '🧒', '👦', '👧', '🧒'];

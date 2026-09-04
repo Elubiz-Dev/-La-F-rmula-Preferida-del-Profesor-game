@@ -7,13 +7,15 @@ import {
   Layers, 
   Binary, 
   Compass, 
-  Volume2
+  Volume2,
+  ChevronLeft,
+  BookOpen
 } from 'lucide-react';
 import { MathFormula } from '../utils/katexHelper';
 import { playSound } from '../utils/sound';
 import confetti from 'canvas-confetti';
 
-export const MathLabView = () => {
+export const MathLabView = ({ onBackToStory, onBackToCampaign }) => {
   // Estado para Euler
   const [selectedEulerConst, setSelectedEulerConst] = useState('all');
   
@@ -80,8 +82,28 @@ export const MathLabView = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6 space-y-8 animate-fade-in">
       
+      {/* Botones de navegación superior */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        {onBackToCampaign && (
+          <button
+            onClick={() => { playSound('click'); onBackToCampaign(); }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-mono text-slate-300 hover:text-white border border-white/10 transition-all"
+          >
+            <ChevronLeft className="w-4 h-4" /> Volver a Campaña
+          </button>
+        )}
+        {onBackToStory && (
+          <button
+            onClick={() => { playSound('click'); onBackToStory(); }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/70 border border-emerald-500/40 text-emerald-300 hover:text-white text-xs font-semibold transition-all ml-auto"
+          >
+            <BookOpen className="w-4 h-4" /> Leer Novela
+          </button>
+        )}
+      </div>
+
       {/* Título del Laboratorio */}
       <div className="text-center max-w-3xl mx-auto">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950 border border-emerald-700/50 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-2">
