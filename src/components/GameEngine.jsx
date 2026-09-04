@@ -48,58 +48,77 @@ export const GameEngine = ({ chapterId, existingStars, onComplete, onBack }) => 
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
+    <div className="max-w-3xl mx-auto px-4 py-6 space-y-4 animate-fade-in">
       {/* Header del capítulo */}
-      <div className="flex items-center gap-3">
-        <button onClick={onBack} className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 transition-colors">
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <p className="text-xs text-emerald-400 font-mono">{chapter.badge}</p>
-          <h2 className="text-xl font-bold font-serif text-white">{chapter.title}</h2>
+      <div className="flex items-center justify-between gap-3 p-3 rounded-2xl glass-panel border border-emerald-500/20 shadow-md">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={onBack} 
+            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all border border-white/10"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <span className="text-[11px] text-emerald-400 font-mono font-semibold">{chapter.badge}</span>
+            <h2 className="text-base sm:text-lg font-bold font-serif text-white leading-tight">{chapter.title}</h2>
+          </div>
         </div>
+
         {existingStars > 0 && (
-          <div className="ml-auto flex gap-0.5">
-            {[1,2,3].map(i => <Star key={i} className={`w-5 h-5 ${i <= existingStars ? 'text-amber-400 fill-amber-400' : 'text-slate-700'}`} />)}
+          <div className="flex gap-1 items-center bg-black/40 px-3 py-1.5 rounded-xl border border-white/10">
+            {[1, 2, 3].map(i => (
+              <Star 
+                key={i} 
+                className={`w-4 h-4 ${i <= existingStars ? 'text-amber-400 fill-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]' : 'text-slate-700'}`} 
+              />
+            ))}
           </div>
         )}
       </div>
 
       {/* INTRO */}
       {gameState === 'intro' && (
-        <div className="rounded-3xl bg-[#0d1b18]/90 border border-emerald-900/60 p-8 space-y-6 text-center">
-          <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-800 flex items-center justify-center text-4xl shadow-xl ring-4 ring-emerald-400/20">
+        <div className="rounded-3xl glass-panel border border-emerald-500/30 p-6 sm:p-8 space-y-6 text-center shadow-2xl animate-fade-in">
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-emerald-500 via-teal-600 to-amber-600 flex items-center justify-center text-4xl shadow-xl ring-4 ring-emerald-400/20 text-white animate-float">
             🎮
           </div>
-          <div>
-            <p className="text-xs text-emerald-400 uppercase tracking-wider font-bold mb-1">Minijuego — {chapter.game.title}</p>
-            <h3 className="text-2xl font-bold font-serif text-white">{chapter.game.title}</h3>
+          
+          <div className="space-y-1">
+            <span className="text-xs uppercase tracking-widest font-mono text-emerald-400 font-bold">Desafío Arcade Narrativo</span>
+            <h3 className="text-2xl sm:text-3xl font-extrabold font-serif text-white">{chapter.game.title}</h3>
           </div>
 
           {/* Resumen del capítulo con estilo post-it */}
-          <div className="bg-yellow-200 text-stone-800 rounded-2xl p-4 text-sm text-left font-semibold shadow-md relative" style={{ fontFamily: 'Caveat, cursive', fontSize: '1.1rem' }}>
-            <div className="absolute -top-3 left-6 w-4 h-4 rounded-full bg-rose-500 ring-2 ring-white/80 shadow" />
+          <div className="postit-card rounded-2xl p-5 text-left font-semibold shadow-xl relative max-w-lg mx-auto" style={{ fontFamily: 'Caveat, cursive', fontSize: '1.25rem' }}>
+            <div className="absolute -top-3 left-6 w-5 h-5 rounded-full bg-rose-500 ring-2 ring-white/90 shadow" />
             "{chapter.quote}"
           </div>
 
-          <p className="text-sm text-slate-300 bg-white/5 p-4 rounded-2xl border border-white/10 leading-relaxed">
-            📖 <strong className="text-white">Historia:</strong> {chapter.synopsis}
-          </p>
-
-          <div className="bg-emerald-950/60 border border-emerald-700/40 rounded-2xl p-4 text-sm text-emerald-200">
-            🎯 <strong>Instrucciones:</strong> {chapter.game.instruction}
+          <div className="bg-black/40 p-4 rounded-2xl border border-white/10 text-xs sm:text-sm text-slate-300 leading-relaxed text-left space-y-1">
+            <p className="font-bold text-white flex items-center gap-1.5">
+              <span>📖</span> Contexto de la Historia:
+            </p>
+            <p>{chapter.synopsis}</p>
           </div>
 
-          <div className="flex items-center justify-center gap-4 text-xs text-slate-400">
-            <span className="flex items-center gap-1"><Timer className="w-4 h-4 text-amber-400" /> {chapter.game.timeLimit}s</span>
-            <span className="flex items-center gap-1"><Trophy className="w-4 h-4 text-amber-400" /> Meta: {chapter.game.goal}</span>
+          <div className="bg-emerald-950/70 border border-emerald-500/40 rounded-2xl p-4 text-xs sm:text-sm text-emerald-200 text-left space-y-1">
+            <p className="font-bold text-white flex items-center gap-1.5">
+              <span>🎯</span> Objetivo del Juego:
+            </p>
+            <p>{chapter.game.instruction}</p>
+          </div>
+
+          <div className="flex items-center justify-center gap-6 text-xs sm:text-sm font-mono text-slate-300 bg-black/30 py-2.5 px-4 rounded-2xl border border-white/10 max-w-md mx-auto">
+            <span className="flex items-center gap-1.5"><Timer className="w-4 h-4 text-amber-400" /> Tiempo: <strong className="text-white">{chapter.game.timeLimit}s</strong></span>
+            <span className="text-slate-700">|</span>
+            <span className="flex items-center gap-1.5"><Trophy className="w-4 h-4 text-amber-400" /> Meta: <strong className="text-amber-300">{chapter.game.goal}</strong></span>
           </div>
 
           <button
-            onClick={() => setGameState('playing')}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-lg shadow-xl transition-all active:scale-95"
+            onClick={() => { playSound('click'); setGameState('playing'); }}
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-base sm:text-lg shadow-xl shadow-emerald-950/80 transition-all active:scale-95"
           >
-            ¡Comenzar Aventura! →
+            ¡Comenzar Desafío! →
           </button>
         </div>
       )}
@@ -109,48 +128,57 @@ export const GameEngine = ({ chapterId, existingStars, onComplete, onBack }) => 
 
       {/* RESULTADO */}
       {gameState === 'result' && (
-        <div className="rounded-3xl bg-[#0d1b18]/90 border border-emerald-900/60 p-8 space-y-6 text-center">
-          <div className="text-5xl">{starsEarned >= 2 ? '🎉' : starsEarned === 1 ? '👍' : '😅'}</div>
-          <div>
-            <h3 className="text-2xl font-bold text-white">
-              {starsEarned === 3 ? '¡Perfecto!' : starsEarned === 2 ? '¡Bien hecho!' : starsEarned === 1 ? 'Capítulo Completado' : 'Inténtalo de nuevo'}
+        <div className="rounded-3xl glass-panel border border-emerald-500/30 p-6 sm:p-8 space-y-6 text-center shadow-2xl animate-fade-in">
+          <div className="text-6xl animate-float">
+            {starsEarned >= 2 ? '🎉' : starsEarned === 1 ? '👍' : '😅'}
+          </div>
+
+          <div className="space-y-1">
+            <h3 className="text-2xl sm:text-3xl font-extrabold font-serif text-white">
+              {starsEarned === 3 ? '¡Maestría Perfecta! (3★)' : starsEarned === 2 ? '¡Excelente Trabajo! (2★)' : starsEarned === 1 ? '¡Capítulo Superado! (1★)' : 'No Te Rindas'}
             </h3>
-            <p className="text-slate-400 text-sm mt-1">
-              {starsEarned >= 1 ? 'Has desbloqueado el siguiente capítulo.' : 'No te rindas, vuelve a intentarlo.'}
+            <p className="text-slate-300 text-xs sm:text-sm">
+              {starsEarned >= 1 ? 'Has avanzado en la historia y desbloqueado la recompensa.' : 'Vuelve a intentarlo para conseguir al menos 1 estrella.'}
             </p>
           </div>
 
-          {/* Estrellas */}
-          <div className="flex justify-center gap-3">
+          {/* Estrellas animadas */}
+          <div className="flex justify-center gap-4 py-2">
             {[1, 2, 3].map(i => (
-              <Star key={i} className={`w-10 h-10 transition-all ${i <= starsEarned ? 'text-amber-400 fill-amber-400 scale-110' : 'text-slate-700'}`} />
+              <Star 
+                key={i} 
+                className={`w-12 h-12 transition-all duration-500 ${
+                  i <= starsEarned 
+                    ? 'text-amber-400 fill-amber-400 scale-110 drop-shadow-[0_0_12px_rgba(251,191,36,0.8)]' 
+                    : 'text-slate-800'
+                }`} 
+              />
             ))}
           </div>
 
-          {/* Carta de recompensa */}
+          {/* Carta de recompensa desbloqueada */}
           {starsEarned >= 1 && (
-            <div className="bg-gradient-to-br from-amber-900/40 to-yellow-900/20 border border-amber-600/50 rounded-2xl p-4">
-              <p className="text-xs text-amber-400 uppercase tracking-wider font-bold mb-2">🏆 Carta Desbloqueada</p>
-              <p className="text-white font-bold text-base">{chapter.rewardCard.name}</p>
-              <p className="text-xs text-amber-200 mt-1">{chapter.rewardCard.desc}</p>
-              <span className="inline-block mt-2 text-[10px] px-2 py-0.5 rounded-full bg-amber-800/60 text-amber-300 border border-amber-600/40">
-                {chapter.rewardCard.type}
+            <div className="foil-card rounded-3xl bg-gradient-to-br from-amber-950/80 via-yellow-950/40 to-slate-950/60 border border-amber-500/50 p-5 space-y-2 shadow-xl">
+              <span className="text-[10px] uppercase tracking-widest font-mono font-bold text-amber-300 bg-amber-950/80 px-2.5 py-0.5 rounded-full border border-amber-500/40 inline-block">
+                🏆 Nueva Carta Coleccionable
               </span>
+              <h4 className="text-lg font-bold font-serif text-white">{chapter.rewardCard.name}</h4>
+              <p className="text-xs text-slate-300 max-w-sm mx-auto leading-relaxed">{chapter.rewardCard.desc}</p>
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 pt-2">
             <button
-              onClick={() => setGameState('intro')}
-              className="py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 font-semibold flex items-center justify-center gap-2 transition-all"
+              onClick={() => { playSound('click'); setGameState('intro'); }}
+              className="py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-slate-300 font-semibold flex items-center justify-center gap-2 transition-all border border-white/10 text-xs sm:text-sm"
             >
               <RefreshCw className="w-4 h-4" /> Reintentar
             </button>
             <button
-              onClick={() => onComplete(starsEarned, starsEarned >= 1 ? chapter.rewardCard.name : null)}
-              className="py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold transition-all"
+              onClick={() => { playSound('click'); onComplete(starsEarned, starsEarned >= 1 ? chapter.rewardCard.name : null); }}
+              className="py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold transition-all shadow-lg text-xs sm:text-sm"
             >
-              {starsEarned >= 1 ? 'Siguiente Capítulo →' : 'Volver al Mapa'}
+              {starsEarned >= 1 ? 'Continuar Historia →' : 'Volver al Mapa'}
             </button>
           </div>
         </div>
@@ -163,19 +191,35 @@ export const GameEngine = ({ chapterId, existingStars, onComplete, onBack }) => 
 // SHARED GAME HUD COMPONENT
 // ================================================================
 const GameHUD = ({ timeLeft, maxTime, score, goal, lives }) => (
-  <div className="flex items-center justify-between bg-black/40 border border-white/10 rounded-2xl px-4 py-2 text-sm mb-4">
-    <div className="flex items-center gap-1.5 text-amber-400 font-mono font-bold">
+  <div className="flex items-center justify-between bg-black/50 border border-white/10 rounded-2xl px-4 py-2.5 text-xs sm:text-sm mb-4 shadow-lg backdrop-blur-md">
+    <div className="flex items-center gap-2 text-amber-400 font-mono font-bold">
       <Timer className="w-4 h-4" />
       <span className={timeLeft <= 5 ? 'text-rose-400 animate-pulse' : ''}>{timeLeft}s</span>
-      <div className="w-16 h-1.5 rounded-full bg-white/10 ml-1">
-        <div className="h-full bg-amber-400 rounded-full transition-all" style={{ width: `${(timeLeft / maxTime) * 100}%` }} />
+      <div className="w-20 h-2 rounded-full bg-black/60 overflow-hidden border border-white/10">
+        <div 
+          className={`h-full rounded-full transition-all duration-300 ${
+            timeLeft <= 5 ? 'bg-rose-500' : 'bg-gradient-to-r from-amber-400 to-emerald-400'
+          }`} 
+          style={{ width: `${(timeLeft / maxTime) * 100}%` }} 
+        />
       </div>
     </div>
-    <div className="font-mono font-bold text-emerald-400">{score} / {goal}</div>
+    
+    <div className="font-mono font-bold text-emerald-300 bg-emerald-950/80 px-3 py-1 rounded-xl border border-emerald-500/30">
+      Progreso: {score} / {goal}
+    </div>
+
     {lives !== undefined && (
-      <div className="flex gap-0.5">
+      <div className="flex gap-1 items-center">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Heart key={i} className={`w-4 h-4 ${i < lives ? 'text-rose-400 fill-rose-400' : 'text-slate-700'}`} />
+          <Heart 
+            key={i} 
+            className={`w-4 h-4 transition-all ${
+              i < lives 
+                ? 'text-rose-500 fill-rose-500 drop-shadow-[0_0_5px_rgba(244,63,94,0.7)]' 
+                : 'text-slate-800'
+            }`} 
+          />
         ))}
       </div>
     )}
