@@ -1036,66 +1036,139 @@ const EulerConstellation = ({ chapter, onGameOver }) => {
 // ================================================================
 const HiddenCardSearch = ({ chapter, onGameOver }) => {
   const [boxes, setBoxes] = useState(() => {
-    const arr = Array.from({ length: 9 }, (_, i) => ({ id: i, opened: false, hasCard: i === Math.floor(Math.random() * 9) }));
-    return arr;
+    const cardIndex = Math.floor(Math.random() * 9);
+    return Array.from({ length: 9 }, (_, i) => ({ id: i, opened: false, hasCard: i === cardIndex }));
   });
   const [found, setFound] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [timeLeft, setTimeLeft] = useState(chapter.game.timeLimit);
-  const [message, setMessage] = useState('¡Busca la tarjeta de Enatsu oculta en las cajas de 1975!');
+  const [message, setMessage] = useState('¡Inspecciona las cajas del baúl de 1975 para encontrar la tarjeta de Enatsu #28!');
+  const [isReshuffling, setIsReshuffling] = useState(false);
   const goal = chapter.game.goal;
   const foundRef = useRef(0);
+  const isOverRef = useRef(false);
+  const timeoutRef = useRef(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(t => { if (t <= 1) { onGameOver(foundRef.current, goal); return 0; } return t - 1; });
+      setTimeLeft(t => {
+        if (t <= 1) {
+          clearInterval(timer);
+          if (!isOverRef.current) {
+            isOverRef.current = true;
+            onGameOver(foundRef.current, goal);
+          }
+          return 0;
+        }
+        return t - 1;
+      });
     }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    return () => {
+      clearInterval(timer);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [goal, onGameOver]);
 
   const openBox = (id) => {
+    if (isReshuffling || isOverRef.current) return;
     const box = boxes.find(b => b.id === id);
-    if (box.opened) return;
-    playSound('click');
+    if (!box || box.opened) return;
+
     setAttempts(a => a + 1);
+
+    // Revelar la caja seleccionada de inmediato (tanto si tiene tarjeta como si está vacía)
     const newBoxes = boxes.map(b => b.id === id ? { ...b, opened: true } : b);
+    setBoxes(newBoxes);
 
     if (box.hasCard) {
       playSound('correct');
-      foundRef.current++;
-      setFound(f => f + 1);
-      setMessage('🃏 ¡Encontraste la tarjeta de Enatsu! Reshuffling...');
-      if (foundRef.current >= goal) { setTimeout(() => onGameOver(goal, goal), 800); return; }
-      // Crear nuevo set de cajas
-      setTimeout(() => {
-        setBoxes(Array.from({ length: 9 }, (_, i) => ({ id: i, opened: false, hasCard: i === Math.floor(Math.random() * 9) })));
-        setMessage('¡Busca la siguiente tarjeta!');
-      }, 700);
+      const nextFound = foundRef.current + 1;
+      foundRef.current = nextFound;
+      setFound(nextFound);
+      setIsReshuffling(true);
+
+      if (nextFound >= goal) {
+        setMessage('🌟 ¡Increíble! ¡Has reunido las 3 tarjetas del tesoro de 1975!');
+        if (!isOverRef.current) {
+          isOverRef.current = true;
+          timeoutRef.current = setTimeout(() => {
+            onGameOver(goal, goal);
+          }, 800);
+        }
+        return;
+      }
+
+      setMessage(`🃏 ¡Encontraste la tarjeta de Enatsu! (${nextFound}/${goal}) Reorganizando el baúl...`);
+      timeoutRef.current = setTimeout(() => {
+        const nextCardIndex = Math.floor(Math.random() * 9);
+        setBoxes(Array.from({ length: 9 }, (_, i) => ({ id: i, opened: false, hasCard: i === nextCardIndex })));
+        setMessage(`¡Busca la siguiente tarjeta (${nextFound + 1}/${goal})!`);
+        setIsReshuffling(false);
+      }, 650);
     } else {
-      setMessage('📦 Vacío. Sigue buscando...');
-      setBoxes(newBoxes);
+      playSound('click');
+      setMessage('📦 Caja vacía con recortes de periódicos. ¡Sigue buscando!');
     }
   };
 
   return (
     <div className="rounded-3xl bg-[#0d1b18]/90 border border-emerald-900/60 p-5 space-y-4">
       <GameHUD timeLeft={timeLeft} maxTime={chapter.game.timeLimit} score={found} goal={goal} />
-      <p className="text-center text-xs text-slate-300">{message}</p>
+
+      {/* Marcador de tarjetas encontradas */}
+      <div className="flex justify-center items-center gap-2">
+        {Array.from({ length: goal }).map((_, i) => (
+          <div
+            key={i}
+            className={`px-3 py-1 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+              i < found
+                ? 'bg-amber-950/80 border-amber-400 text-amber-300 shadow-md shadow-amber-500/20 ring-1 ring-amber-400/40'
+                : 'bg-white/5 border-white/10 text-slate-500'
+            }`}
+          >
+            <span>{i < found ? '🃏' : '🔒'}</span>
+            <span>Tarjeta {i + 1}</span>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-center text-xs text-slate-300 bg-white/5 rounded-xl p-2.5 border border-white/5">{message}</p>
+
+      {/* Grid de cajas */}
       <div className="grid grid-cols-3 gap-3">
         {boxes.map(box => (
           <button
             key={box.id}
             onClick={() => openBox(box.id)}
-            disabled={box.opened}
-            className={`aspect-square rounded-2xl font-bold text-3xl transition-all active:scale-95 border
+            disabled={box.opened || isReshuffling}
+            className={`aspect-square rounded-2xl font-bold text-3xl transition-all active:scale-95 border flex flex-col items-center justify-center relative select-none
               ${box.opened
                 ? box.hasCard
-                  ? 'bg-amber-900/40 border-amber-500 text-amber-400'
-                  : 'bg-white/5 border-white/10 text-slate-600'
-                : 'bg-amber-900/20 border-amber-700/50 hover:bg-amber-800/30 hover:scale-105 cursor-pointer'
+                  ? 'bg-amber-900/60 border-amber-400 text-amber-300 shadow-lg shadow-amber-500/30 ring-2 ring-amber-400 animate-pulse'
+                  : 'bg-white/5 border-white/10 text-slate-600 opacity-60'
+                : isReshuffling
+                  ? 'bg-amber-950/20 border-amber-900/30 opacity-40 cursor-wait'
+                  : 'bg-gradient-to-br from-amber-950/40 via-stone-900/60 to-emerald-950/40 border-amber-800/60 hover:border-amber-400/80 hover:scale-105 hover:shadow-lg hover:shadow-amber-900/30 cursor-pointer'
               }`}
           >
-            {box.opened ? (box.hasCard ? '🃏' : '📦') : '📫'}
+            {box.opened ? (
+              box.hasCard ? (
+                <div className="flex flex-col items-center animate-bounce">
+                  <span>🃏</span>
+                  <span className="text-[10px] font-mono font-bold text-amber-300 mt-1">#28 ENATSU</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <span>📦</span>
+                  <span className="text-[9px] text-slate-500 mt-1">Vacío</span>
+                </div>
+              )
+            ) : (
+              <div className="flex flex-col items-center">
+                <span>🗃️</span>
+                <span className="text-[9px] text-amber-200/60 mt-1">1975</span>
+              </div>
+            )}
           </button>
         ))}
       </div>

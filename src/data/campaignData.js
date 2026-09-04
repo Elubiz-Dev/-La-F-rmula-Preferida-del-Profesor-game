@@ -188,7 +188,7 @@ export const CAMPAIGN_CHAPTERS = [
       title: 'Búsqueda en el Baúl Vintage',
       instruction: 'Inspecciona y retira los periódicos y cajas de 1975 para desenterrar la tarjeta de Enatsu oculta antes de que expire el tiempo.',
       goal: 3,
-      timeLimit: 15
+      timeLimit: 18
     }
   },
   {
