@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { BackgroundCanvas } from './components/BackgroundCanvas';
 import { Navbar } from './components/Navbar';
 import { CampaignMapView } from './components/CampaignMapView';
-import { GameEngine } from './components/GameEngine';
 import { ChapterStoryView } from './components/ChapterStoryView';
 import { MathLabView } from './components/MathLabView';
+import { GameEngine } from './components/GameEngine';
 import { CollectionView } from './components/CollectionView';
 import { QuizView } from './components/QuizView';
 import { toggleSound, isSoundEnabled, playSound } from './utils/sound';
@@ -74,7 +74,6 @@ export default function App() {
   const handleGoToLab = () => {
     setActiveTab('mathlab');
   };
-
 
   return (
     <div className="min-h-screen bg-[#071311] text-slate-100 flex flex-col relative overflow-x-hidden selection:bg-amber-500 selection:text-black">

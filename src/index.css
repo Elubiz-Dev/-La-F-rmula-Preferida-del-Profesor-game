@@ -143,6 +143,16 @@
   background: #2e6156;
 }
 
+/* Ocultar scrollbar preservando funcionalidad de scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
 /* Animaciones */
 @keyframes floatSlow {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
